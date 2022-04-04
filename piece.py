@@ -26,14 +26,18 @@ class Piece:
         # Right
         for offset_x in range(1, distance + 1):
             (pos_x, pos_y) = (x + offset_x, y)
-            if not self.board.is_position_in_bound(pos_x, pos_y) or self.board.check_piece_at_position(pos_x, pos_y):
+            if not self.board.is_position_in_bound(
+                pos_x, pos_y
+            ) or self.board.check_piece_at_position(pos_x, pos_y):
                 break
             res.append((pos_x, pos_y))
 
         # Left
         for offset_x in range(1, distance + 1):
             (pos_x, pos_y) = (x - offset_x, y)
-            if not self.board.is_position_in_bound(pos_x, pos_y) or self.board.check_piece_at_position(pos_x, pos_y):
+            if not self.board.is_position_in_bound(
+                pos_x, pos_y
+            ) or self.board.check_piece_at_position(pos_x, pos_y):
                 break
             res.append((pos_x, pos_y))
 
@@ -49,8 +53,9 @@ class Piece:
         if self.color == "black" or both_direction:
             for offset_y in range(1, distance + 1):
                 (pos_x, pos_y) = (x, y + offset_y)
-                if not self.board.is_position_in_bound(pos_x, pos_y) or self.board.check_piece_at_position(pos_x,
-                                                                                                           pos_y):
+                if not self.board.is_position_in_bound(
+                    pos_x, pos_y
+                ) or self.board.check_piece_at_position(pos_x, pos_y):
                     break
                 res.append((pos_x, pos_y))
 
@@ -58,8 +63,9 @@ class Piece:
         if self.color == "white" or both_direction:
             for offset_y in range(1, distance + 1):
                 (pos_x, pos_y) = (x, y - offset_y)
-                if not self.board.is_position_in_bound(pos_x, pos_y) or self.board.check_piece_at_position(pos_x,
-                                                                                                           pos_y):
+                if not self.board.is_position_in_bound(
+                    pos_x, pos_y
+                ) or self.board.check_piece_at_position(pos_x, pos_y):
                     break
                 res.append((pos_x, pos_y))
 
@@ -80,8 +86,9 @@ class Piece:
                 else:
                     (pos_x, pos_y) = (x + offset, y - offset)
 
-                if not self.board.is_position_in_bound(pos_x, pos_y) or self.board.check_piece_at_position(pos_x,
-                                                                                                           pos_y):
+                if not self.board.is_position_in_bound(
+                    pos_x, pos_y
+                ) or self.board.check_piece_at_position(pos_x, pos_y):
                     break
                 res.append((pos_x, pos_y))
 
@@ -97,9 +104,13 @@ class Piece:
         if photo[type(self).__name__][self.color] is None:
             # Load image from file
             photo[type(self).__name__][self.color] = PhotoImage(file=self.image_path())
+
             # Resize image to the correct scale
-            photo[type(self).__name__][self.color] = photo[type(self).__name__][self.color].subsample(
-                1024 // cell_size, 1024 // cell_size
+            photo[type(self).__name__][self.color] = photo[type(self).__name__][
+                self.color
+            ].subsample(
+                photo[type(self).__name__][self.color].width() // cell_size,
+                photo[type(self).__name__][self.color].height() // cell_size,
             )
 
         return photo[type(self).__name__][self.color]
@@ -120,7 +131,16 @@ class Knight(Piece):
     # Knight has custom movements, it doesn't uses horizontal/vertical/diagonal
     def possible_moves(self, x: int, y: int):
         res = []
-        offsets = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
+        offsets = [
+            (-2, -1),
+            (-2, 1),
+            (-1, -2),
+            (-1, 2),
+            (1, -2),
+            (1, 2),
+            (2, -1),
+            (2, 1),
+        ]
         for offset in offsets:
             res.append((x + offset[0], y + offset[1]))
         return res
@@ -147,7 +167,11 @@ class Bishop(Piece):
 
 class Queen(Piece):
     def possible_moves(self, x: int, y: int):
-        return self.horizontal(x, y, 8) + self.vertical(x, y, 8, True) + self.diagonal(x, y, 8)
+        return (
+            self.horizontal(x, y, 8)
+            + self.vertical(x, y, 8, True)
+            + self.diagonal(x, y, 8)
+        )
 
     def image_path(self):
         return f"./images/queen_{self.color}.png"
@@ -155,7 +179,11 @@ class Queen(Piece):
 
 class King(Piece):
     def possible_moves(self, x: int, y: int):
-        return self.horizontal(x, y, 1) + self.vertical(x, y, 1, True) + self.diagonal(x, y, 1)
+        return (
+            self.horizontal(x, y, 1)
+            + self.vertical(x, y, 1, True)
+            + self.diagonal(x, y, 1)
+        )
 
     def image_path(self):
         return f"./images/king_{self.color}.png"
