@@ -12,7 +12,7 @@ This project was made for an university project.
 - Choosing the depth of the bot tree (aka difficulty)
 
 ## Will this project be updated in the future?
-No this project was made an university project, and I will not maintain it as I work on other big projects.
+No this project was made for an university project, and I will not maintain it as I work on other big projects.
 
 If you want to contribute feel free to open a pull request.
 
