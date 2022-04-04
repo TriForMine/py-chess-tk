@@ -4,10 +4,11 @@ A chess game written in python with tk
 This project was made for an university project.
 
 ## Features
-- Showing the board
+- Showing the board with pieces
+- Show a preview of the movements that are possible.
 
 ## Features Planned
-- Moving pieces, with a preview of the possible movements.
+- Moving pieces.
 - Saving/Loading a game
 - Turn by turn with a second player
 - Playing against a basic bot using a tree and [minimax algorithm](https://towardsdatascience.com/how-a-chess-playing-computer-thinks-about-its-next-move-8f028bd0e7b1).
