@@ -10,19 +10,13 @@ class Board:
         self.w = width
         self.h = height
         self.cellSize = cell_size
-        self.grid = []
+        # Generate the grid matrix to empty by default
+        self.grid = [[None for _ in range(width)] for _ in range(height)]
         self.canvas = canvas
         self.hoverPosition = None
 
         self.last_x = -1
         self.last_y = -1
-
-        # Generate the grid matrix to empty by default
-        for y in range(height):
-            line = []
-            for x in range(width):
-                line.append(None)
-            self.grid.append(line)
 
         self.reset_board()
 
