@@ -99,7 +99,7 @@ class Piece:
 
     def image(self, cell_size: int):
         # Check if image is in cache, if not load it
-        if not type(self).__name__ in photo.keys():
+        if type(self).__name__ not in photo.keys():
             photo[type(self).__name__] = {"black": None, "white": None}
         if photo[type(self).__name__][self.color] is None:
             # Load image from file
