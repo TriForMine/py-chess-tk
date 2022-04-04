@@ -43,11 +43,13 @@ class Board:
                     x * self.cellSize + self.cellSize,
                     y * self.cellSize + self.cellSize,
                     fill=fill,
-                    outline=""
+                    outline="",
                 )
 
         if self.hoverPosition:
-            piece = self.get_piece_at_position(self.hoverPosition[0], self.hoverPosition[1])
+            piece = self.get_piece_at_position(
+                self.hoverPosition[0], self.hoverPosition[1]
+            )
             movements = piece.possible_moves()
 
             for offset in movements:
@@ -61,7 +63,7 @@ class Board:
                         x * self.cellSize + self.cellSize,
                         y * self.cellSize + self.cellSize,
                         fill="#d4e157",
-                        outline=""
+                        outline="",
                     )
 
         for y in range(self.h):
@@ -70,7 +72,7 @@ class Board:
                     self.canvas.create_image(
                         x * self.cellSize + self.cellSize // 2,
                         y * self.cellSize + self.cellSize // 2,
-                        image=self.grid[y][x].image(self.cellSize)
+                        image=self.grid[y][x].image(self.cellSize),
                     )
 
     def convert_world_to_local(self, x, y):
@@ -130,25 +132,25 @@ class Board:
 
     def reset_board(self):
         for x in range(self.w):
-            self.grid[1][x] = Pawn('black')
-            self.grid[self.h - 2][x] = Pawn('white')
+            self.grid[1][x] = Pawn("black")
+            self.grid[self.h - 2][x] = Pawn("white")
 
             if x == 0 or x == self.w - 1:
-                self.grid[0][x] = Rook('black')
-                self.grid[self.h - 1][x] = Rook('white')
+                self.grid[0][x] = Rook("black")
+                self.grid[self.h - 1][x] = Rook("white")
 
             elif x == 1 or x == self.w - 2:
-                self.grid[0][x] = Knight('black')
-                self.grid[self.h - 1][x] = Knight('white')
+                self.grid[0][x] = Knight("black")
+                self.grid[self.h - 1][x] = Knight("white")
 
             elif x == 2 or x == self.w - 3:
-                self.grid[0][x] = Bishop('black')
-                self.grid[self.h - 1][x] = Bishop('white')
+                self.grid[0][x] = Bishop("black")
+                self.grid[self.h - 1][x] = Bishop("white")
 
             elif x == 3:
-                self.grid[0][x] = Queen('black')
-                self.grid[self.h - 1][x] = Queen('white')
+                self.grid[0][x] = Queen("black")
+                self.grid[self.h - 1][x] = Queen("white")
 
             elif x == 4:
-                self.grid[0][x] = King('black')
-                self.grid[self.h - 1][x] = King('white')
+                self.grid[0][x] = King("black")
+                self.grid[self.h - 1][x] = King("white")

@@ -20,7 +20,7 @@ class MainGUI(Frame):
         self.master.resizable(0, 0)
 
         self.master.bind("<Button-1>", self.on_click)
-        self.master.bind('<Motion>', self.on_mouse_move)
+        self.master.bind("<Motion>", self.on_mouse_move)
 
         self.board.render()
 
@@ -35,7 +35,6 @@ class MainGUI(Frame):
 
     def on_mouse_move(self, motion):
         self.board.handle_hover(motion)
-
 
 
 root = Tk()
