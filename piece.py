@@ -10,11 +10,11 @@ class Piece:
 
     @staticmethod
     def name():
-        raise "Name method need to be overwritten"
+        raise Exception("Name method need to be overwritten")
 
     @staticmethod
     def possible_moves(x: int, y: int):
-        raise "The piece doesn't implement any movements"
+        raise Exception("The piece doesn't implement any movements")
 
     def get_moves(self, x: int, y: int):
         return self.possible_moves(x, y)
@@ -98,7 +98,7 @@ class Piece:
 
     @staticmethod
     def image_path() -> str:
-        raise "The piece doesn't implement image_path"
+        raise Exception("The piece doesn't implement image_path")
 
     def image(self, cell_size: int):
         # Check if image is in cache, if not load it
