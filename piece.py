@@ -8,10 +8,12 @@ class Piece:
         self.board = board
         self.color = color
 
-    def name(self):
+    @staticmethod
+    def name():
         raise "Name method need to be overwritten"
 
-    def possible_moves(self, x: int, y: int):
+    @staticmethod
+    def possible_moves(x: int, y: int):
         raise "The piece doesn't implement any movements"
 
     def get_moves(self, x: int, y: int):
@@ -94,7 +96,8 @@ class Piece:
 
         return res
 
-    def image_path(self) -> str:
+    @staticmethod
+    def image_path() -> str:
         raise "The piece doesn't implement image_path"
 
     def image(self, cell_size: int):
