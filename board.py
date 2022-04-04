@@ -1,5 +1,4 @@
 from tkinter import Event
-from typing import List, Any
 
 from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
 

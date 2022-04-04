@@ -15,10 +15,10 @@ class MainGUI(Frame):
         self.init_ui()
 
     def init_ui(self):
-        self.master.title("Chess Game")
-        self.master.geometry(f"{WIDTH}x{HEIGHT}")
+        self.winfo_toplevel().title("Chess Game")
+        self.winfo_toplevel().geometry(f"{WIDTH}x{HEIGHT}")
         # Make the window not resizable
-        self.master.resizable(0, 0)
+        self.winfo_toplevel().resizable(False, False)
 
         # Detect left click
         self.master.bind("<Button-1>", self.on_click)
