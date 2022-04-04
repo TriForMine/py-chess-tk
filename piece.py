@@ -8,10 +8,12 @@ class Piece:
         self.board = board
         self.color = color
 
-    def name(self):
+    @staticmethod
+    def name():
         raise "Name method need to be overwritten"
 
-    def possible_moves(self, x: int, y: int):
+    @staticmethod
+    def possible_moves(x: int, y: int):
         raise "The piece doesn't implement any movements"
 
     def get_moves(self, x: int, y: int):
@@ -94,12 +96,13 @@ class Piece:
 
         return res
 
-    def image_path(self) -> str:
+    @staticmethod
+    def image_path() -> str:
         raise "The piece doesn't implement image_path"
 
     def image(self, cell_size: int):
         # Check if image is in cache, if not load it
-        if not type(self).__name__ in photo.keys():
+        if type(self).__name__ not in photo:
             photo[type(self).__name__] = {"black": None, "white": None}
         if photo[type(self).__name__][self.color] is None:
             # Load image from file

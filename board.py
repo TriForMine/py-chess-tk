@@ -140,15 +140,15 @@ class Board:
             self.grid[1][x] = Pawn(self, "black")
             self.grid[self.h - 2][x] = Pawn(self, "white")
 
-            if x == 0 or x == self.w - 1:
+            if x in (0, self.w - 1):
                 self.grid[0][x] = Rook(self, "black")
                 self.grid[self.h - 1][x] = Rook(self, "white")
 
-            elif x == 1 or x == self.w - 2:
+            elif x in (1, self.w - 2):
                 self.grid[0][x] = Knight(self, "black")
                 self.grid[self.h - 1][x] = Knight(self, "white")
 
-            elif x == 2 or x == self.w - 3:
+            elif x in (2, self.w - 3):
                 self.grid[0][x] = Bishop(self, "black")
                 self.grid[self.h - 1][x] = Bishop(self, "white")
 
