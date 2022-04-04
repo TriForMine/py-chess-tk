@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Canvas, BOTH
+from tkinter import Tk, Frame, Canvas, BOTH, Event
 
 from board import Board
 
@@ -17,23 +17,23 @@ class MainGUI(Frame):
     def init_ui(self):
         self.master.title("Chess Game")
         self.master.geometry(f"{WIDTH}x{HEIGHT}")
+        # Make the window not resizable
         self.master.resizable(0, 0)
 
+        # Detect left click
         self.master.bind("<Button-1>", self.on_click)
+        # Detect mouse movement
         self.master.bind("<Motion>", self.on_mouse_move)
 
+        # Render the board
         self.board.render()
 
         self.canvas.pack(fill=BOTH, expand=1)
 
-    def on_click(self, click_event):
-        """
-
-        :type click_event: ClickEvent
-        """
+    def on_click(self, click_event: Event):
         self.board.handle_click(click_event)
 
-    def on_mouse_move(self, motion):
+    def on_mouse_move(self, motion: Event):
         self.board.handle_hover(motion)
 
 

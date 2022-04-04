@@ -1,13 +1,13 @@
-from piece import Pawn, Knight, Rook, Bishop, Queen, King
+from tkinter import Event
+from typing import List, Any
+
+from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
 
 
 class Board:
-    def __init__(self, canvas, width, height, cell_size):
-        """
-        :type width: int
-        :type height: int
-        :type cell_size: int
-        """
+    grid: list[list[Piece | None]]
+
+    def __init__(self, canvas, width: int, height: int, cell_size: int):
         self.w = width
         self.h = height
         self.cellSize = cell_size
@@ -18,6 +18,7 @@ class Board:
         self.last_x = -1
         self.last_y = -1
 
+        # Generate the grid matrix to empty by default
         for y in range(height):
             line = []
             for x in range(width):
@@ -28,8 +29,13 @@ class Board:
 
     def render(self):
         """
-        Render the board by drawing square
+        Render the board
         """
+
+        # Clear existing canvas, as we will redraw everything.
+        self.canvas.delete("all")
+
+        # Draw the grid
         for y in range(self.h):
             for x in range(self.w):
                 if (y - x) % 2 == 0:
@@ -46,6 +52,7 @@ class Board:
                     outline="",
                 )
 
+        # Show possible movements if the user hover a piece
         if self.hoverPosition:
             (x, y) = self.hoverPosition[0], self.hoverPosition[1]
             piece = self.get_piece_at_position(x, y)
@@ -65,6 +72,7 @@ class Board:
                         outline="",
                     )
 
+        # Draw all the pieces
         for y in range(self.h):
             for x in range(self.w):
                 if self.grid[y][x] is not None:
@@ -74,54 +82,56 @@ class Board:
                         image=self.grid[y][x].image(self.cellSize),
                     )
 
-    def convert_world_to_local(self, x, y):
+    def convert_world_to_local(self, x: int, y: int) -> tuple[int, int]:
         """
         Convert world position to local position in the grid
-        :param x: int
-        :param y: int
-        :return: int
         """
         return x // self.cellSize, y // self.cellSize
 
-    def is_position_in_bound(self, x, y):
+    def is_position_in_bound(self, x: int, y: int) -> bool:
+        """
+        Check if the given position, is inside the grid
+        """
         return self.w > x >= 0 and 0 <= y < self.h
 
-    def can_piece_move(self, x, y, movements):
-        for offset in movements:
-            if self.check_piece_at_position(x + offset[0], y + offset[1]):
-                return False
-        return True
-
-    def get_piece_at_position(self, x, y):
+    def get_piece_at_position(self, x: int, y: int) -> Piece | None:
         if not self.is_position_in_bound(x, y):
             return None
         return self.grid[y][x]
 
-    def check_piece_at_position(self, x, y):
+    def check_piece_at_position(self, x: int, y: int) -> bool:
+        """
+        Check if there is a piece at the given position
+        """
         if not self.is_position_in_bound(x, y):
-            return None
+            return False
         return self.grid[y][x] is not None
 
-    def handle_click(self, button_press):
+    def handle_click(self, button_press: Event):
         """
         Handle click event on the board
-        :type button_press: ButtonPress
         """
         (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
-        piece = self.get_piece_at_position(x, y)
+        if self.check_piece_at_position(x, y):
+            self.start_move(x, y)
 
         self.grid[y][x] = None
 
-    def handle_hover(self, motion):
+    def handle_hover(self, motion: Event):
+        """
+        Handle mouse over
+        """
         (x, y) = self.convert_world_to_local(motion.x, motion.y)
 
         # Don't update the board if the mouse didn't move in another cell
         if x == self.last_x and y == self.last_y:
             return
 
+        # Set last position to the new one
         self.last_x = x
         self.last_y = y
 
+        # Check if the hovered cell contains a piece, set the hover position if it it does.
         if self.check_piece_at_position(x, y):
             self.hoverPosition = (x, y)
             self.render()
@@ -129,8 +139,10 @@ class Board:
             self.hoverPosition = None
             self.render()
 
-
     def reset_board(self):
+        """
+        Reset the board to the initial state
+        """
         for x in range(self.w):
             self.grid[1][x] = Pawn(self, "black")
             self.grid[self.h - 2][x] = Pawn(self, "white")
@@ -154,3 +166,6 @@ class Board:
             elif x == 4:
                 self.grid[0][x] = King(self, "black")
                 self.grid[self.h - 1][x] = King(self, "white")
+
+    def start_move(self, x: int, y: int):
+        pass
