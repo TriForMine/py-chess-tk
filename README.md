@@ -1,4 +1,4 @@
-# Py Chess Tk
+# [Py Chess Tk](https://github.com/TriForMine/py-chess-tk)
 A chess game written in python with tk
 
 This project was made for an university project.
