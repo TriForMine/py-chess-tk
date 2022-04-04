@@ -47,14 +47,13 @@ class Board:
                 )
 
         if self.hoverPosition:
-            piece = self.get_piece_at_position(
-                self.hoverPosition[0], self.hoverPosition[1]
-            )
-            movements = piece.possible_moves()
+            (x, y) = self.hoverPosition[0], self.hoverPosition[1]
+            piece = self.get_piece_at_position(x, y)
+            movements = piece.get_moves(x, y)
 
             for offset in movements:
-                x = self.hoverPosition[0] + offset[0]
-                y = self.hoverPosition[1] + offset[1]
+                x = offset[0]
+                y = offset[1]
 
                 if not self.get_piece_at_position(x, y):
                     self.canvas.create_rectangle(
@@ -111,46 +110,47 @@ class Board:
         (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
         piece = self.get_piece_at_position(x, y)
 
-        print(piece)
+        self.grid[y][x] = None
 
     def handle_hover(self, motion):
         (x, y) = self.convert_world_to_local(motion.x, motion.y)
 
         # Don't update the board if the mouse didn't move in another cell
         if x == self.last_x and y == self.last_y:
-            self.hoverPosition = None
             return
 
         self.last_x = x
         self.last_y = y
 
-        piece = self.get_piece_at_position(x, y)
-
-        if piece:
+        if self.check_piece_at_position(x, y):
             self.hoverPosition = (x, y)
             self.render()
+        elif self.hoverPosition:
+            self.hoverPosition = None
+            self.render()
+
 
     def reset_board(self):
         for x in range(self.w):
-            self.grid[1][x] = Pawn("black")
-            self.grid[self.h - 2][x] = Pawn("white")
+            self.grid[1][x] = Pawn(self, "black")
+            self.grid[self.h - 2][x] = Pawn(self, "white")
 
             if x == 0 or x == self.w - 1:
-                self.grid[0][x] = Rook("black")
-                self.grid[self.h - 1][x] = Rook("white")
+                self.grid[0][x] = Rook(self, "black")
+                self.grid[self.h - 1][x] = Rook(self, "white")
 
             elif x == 1 or x == self.w - 2:
-                self.grid[0][x] = Knight("black")
-                self.grid[self.h - 1][x] = Knight("white")
+                self.grid[0][x] = Knight(self, "black")
+                self.grid[self.h - 1][x] = Knight(self, "white")
 
             elif x == 2 or x == self.w - 3:
-                self.grid[0][x] = Bishop("black")
-                self.grid[self.h - 1][x] = Bishop("white")
+                self.grid[0][x] = Bishop(self, "black")
+                self.grid[self.h - 1][x] = Bishop(self, "white")
 
             elif x == 3:
-                self.grid[0][x] = Queen("black")
-                self.grid[self.h - 1][x] = Queen("white")
+                self.grid[0][x] = Queen(self, "black")
+                self.grid[self.h - 1][x] = Queen(self, "white")
 
             elif x == 4:
-                self.grid[0][x] = King("black")
-                self.grid[self.h - 1][x] = King("white")
+                self.grid[0][x] = King(self, "black")
+                self.grid[self.h - 1][x] = King(self, "white")
