@@ -3,8 +3,10 @@ A chess game written in python with tk
 
 This project was made for an university project.
 
-## Features Planned
+## Features
 - Showing the board
+
+## Features Planned
 - Moving pieces, with a preview of the possible movements.
 - Saving/Loading a game
 - Turn by turn with a second player
