@@ -8,7 +8,7 @@ This project was made for an university project.
 - Moving pieces, with a preview of the possible movements.
 - Saving/Loading a game
 - Turn by turn with a second player
-- Playing against a basic bot using a tree and [minimax algorithm](https://en.m.wikipedia.org/wiki/Minimax).
+- Playing against a basic bot using a tree and [minimax algorithm](https://towardsdatascience.com/how-a-chess-playing-computer-thinks-about-its-next-move-8f028bd0e7b1).
 - Choosing the depth of the bot tree (aka difficulty)
 
 ## Will this project be updated in the future?
