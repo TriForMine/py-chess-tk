@@ -15,8 +15,9 @@ This project was made for a university project.
 
 ## What is missing
 This project only includes the basis of chess.<br/>
-And doesn't contain everything like **Pawn Promotion, Castling, Passant**.<br/>
-It also doesn't contain any save/load board system, neither algebraic notation.
+- And doesn't contain everything like **Pawn Promotion, Castling, Passant**.<br/>
+- It also doesn't contain any save/load board system, neither algebraic notation.<br/>
+- It will not warn about any illegal moves.
 
 ## Check and Checkmate detection
 The project implements a basic detection for check and checkmate.<br/>
