@@ -27,6 +27,9 @@ class Board:
         # Store the currently hovered piece
         self.hoverPosition = None
 
+        # Store the current player
+        self.player = "white"
+
         # Store the currently dragged piece and it's position
         self.currentMousePosition = None
         self.draggedPiece = None
@@ -38,34 +41,35 @@ class Board:
         self.reset_board()
 
     def draw_movements(self, movements, capture_movements, color: str):
-        for pos in movements:
-            (x, y) = pos
+        if color == self.player:
+            for pos in movements:
+                (x, y) = pos
 
-            # Draw a hollow on cell that doesn't have a piece
-            if not self.check_piece_at_position(x, y):
-                self.canvas.create_rectangle(
-                    x * self.cellSize + self.cellSize * 0.2,
-                    y * self.cellSize + self.cellSize * 0.2,
-                    x * self.cellSize + self.cellSize * 0.8,
-                    y * self.cellSize + self.cellSize * 0.8,
-                    fill="#d4e157",
-                    outline="",
-                )
+                # Draw a hollow on cell that doesn't have a piece
+                if not self.check_piece_at_position(x, y):
+                    self.canvas.create_rectangle(
+                        x * self.cellSize + self.cellSize * 0.2,
+                        y * self.cellSize + self.cellSize * 0.2,
+                        x * self.cellSize + self.cellSize * 0.8,
+                        y * self.cellSize + self.cellSize * 0.8,
+                        fill="#d4e157",
+                        outline="",
+                    )
 
-        for pos in capture_movements:
-            (x, y) = pos
+            for pos in capture_movements:
+                (x, y) = pos
 
-            # Draw a hollow on cell that doesn't have a piece
-            capture_piece = self.get_piece_at_position(x, y)
-            if capture_piece and capture_piece.color != color:
-                self.canvas.create_rectangle(
-                    x * self.cellSize + self.cellSize * 0.2,
-                    y * self.cellSize + self.cellSize * 0.2,
-                    x * self.cellSize + self.cellSize * 0.8,
-                    y * self.cellSize + self.cellSize * 0.8,
-                    fill="#ef5350",
-                    outline="",
-                )
+                # Draw a hollow on cell that doesn't have a piece
+                capture_piece = self.get_piece_at_position(x, y)
+                if capture_piece and capture_piece.color != color:
+                    self.canvas.create_rectangle(
+                        x * self.cellSize + self.cellSize * 0.2,
+                        y * self.cellSize + self.cellSize * 0.2,
+                        x * self.cellSize + self.cellSize * 0.8,
+                        y * self.cellSize + self.cellSize * 0.8,
+                        fill="#ef5350",
+                        outline="",
+                    )
 
     def render(self):
         """
@@ -158,7 +162,7 @@ class Board:
         (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
         piece = self.get_piece_at_position(x, y)
         # If there is no piece at the clicked position, ignore the left click
-        if not piece:
+        if not piece or piece.color != self.player:
             return
 
         self.draggedPiece = piece
@@ -181,8 +185,8 @@ class Board:
 
             (pos_x, pos_y) = self.draggedPosition[0], self.draggedPosition[1]
 
-            # Check if the released position is a valid movement.
             destination_piece = self.get_piece_at_position(x, y)
+            # Check if the released position is a valid movement.
             if (
                 (x, y) in self.draggedPiece.get_moves(pos_x, pos_y)
                 and not destination_piece
@@ -190,10 +194,16 @@ class Board:
                 (x, y) in self.draggedPiece.get_capture_moves(pos_x, pos_y)
                 and destination_piece.color != self.draggedPiece.color
             ):
+                # Move the piece to the new position
                 self.grid[y][x] = self.draggedPiece
                 self.draggedPiece = None
                 self.draggedPosition = None
+                if self.player == "white":
+                    self.player = "black"
+                else:
+                    self.player = "white"
             else:
+                # Revert the movement
                 self.grid[pos_y][pos_x] = self.draggedPiece
                 self.draggedPiece = None
                 self.draggedPosition = None
