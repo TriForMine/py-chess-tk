@@ -1,4 +1,3 @@
-from copy import deepcopy
 from tkinter import Event, Canvas, messagebox
 
 from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
