@@ -1,6 +1,8 @@
 # [Py Chess Tk](https://github.com/TriForMine/py-chess-tk)
 A chess game written in python with tk
 
+![Preview](https://i.imgur.com/sFCSYrZ.png)
+
 This project was made for a university project.
 
 ## Features
