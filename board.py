@@ -98,7 +98,9 @@ class Board:
 
                         for pos in moves:
                             (pos_x, pos_y) = pos
-                            if self.is_position_in_bound(pos_x, pos_y) and not self.check_piece_at_position(pos_x, pos_y):
+                            if self.is_position_in_bound(
+                                pos_x, pos_y
+                            ) and not self.check_piece_at_position(pos_x, pos_y):
                                 res.add(((x, y), pos))
 
         return res
@@ -116,7 +118,10 @@ class Board:
                     return (x, y), piece
 
         self.reset_board()
-        messagebox.showwarning("Warning", "The game has ended, the board was reset.")
+        messagebox.showwarning(
+            "Warning",
+            f"The {color} king was captured.\n{enemy_color(color)} won.\n\nThe game has been reset.",
+        )
 
     def is_color_in_check(self, color: str, grid=None):
         """
@@ -162,9 +167,7 @@ class Board:
         # If it's the black player turn, the white player has lost.
         if self.is_color_in_check("white"):
             if self.player == "white":
-                if self.verify_counter_check(
-                    "white"
-                ):
+                if self.verify_counter_check("white"):
                     return False
                 else:
                     return "white"
@@ -175,9 +178,7 @@ class Board:
         # If it's the white player turn, the black player has lost.
         if self.is_color_in_check("black"):
             if self.player == "black":
-                if self.verify_counter_check(
-                    "black"
-                ):
+                if self.verify_counter_check("black"):
                     return False
                 else:
                     return "black"
@@ -186,13 +187,11 @@ class Board:
 
         return None
 
-    def draw_movements(self, movements, capture_movements, color: str, king: bool):
+    def draw_movements(self, movements, capture_movements, color: str):
         """
         Draw all the movement on the board.
         """
         if color == self.player:
-            if not king and self.is_color_in_check(color):
-                return
             for pos in movements:
                 (x, y) = pos
 
@@ -256,7 +255,6 @@ class Board:
                     piece.get_moves(self, x, y),
                     piece.get_capture_moves(self, x, y),
                     piece.color,
-                    type(piece) is King,
                 )
 
         # Draw all the pieces
@@ -276,7 +274,6 @@ class Board:
                 self.draggedPiece.get_moves(self, x, y),
                 self.draggedPiece.get_capture_moves(self, x, y),
                 self.draggedPiece.color,
-                type(self.draggedPiece) is King,
             )
 
             self.canvas.create_image(
@@ -365,6 +362,9 @@ class Board:
                 else:
                     self.player = "white"
 
+                # After a movement has been made, check if any of the king are under check/checkmate
+                loser = self.verify_for_checkmate()
+
                 if self.player == "black":
                     if self.playWithBot:
                         start = time()
@@ -375,13 +375,16 @@ class Board:
                         self.grid[s_y][s_x] = None
                         self.player = "white"
 
-                # After a movement has been made, check if any of the king are under check/checkmate
-                loser = self.verify_for_checkmate()
+                        # After a movement has been made, check if any of the king are under check/checkmate
+                        loser = self.verify_for_checkmate()
+
                 if loser:
                     messagebox.showinfo(
                         "Game Ended",
                         f"{enemy_color(loser)} won!\n{loser} has a checkmate!",
                     )
+                    self.reset_board()
+                    return
             else:
                 # Revert the movement
                 self.grid[pos_y][pos_x] = self.draggedPiece
@@ -466,3 +469,5 @@ class Board:
             elif x == 4:
                 self.grid[0][x] = King("black")
                 self.grid[self.h - 1][x] = King("white")
+
+        self.render()
