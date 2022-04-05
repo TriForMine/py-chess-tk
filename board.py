@@ -156,8 +156,9 @@ class Board:
         """
         (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
 
-        # Check if the released position is a valid movement.
         (pos_x, pos_y) = self.draggedPosition[0], self.draggedPosition[1]
+
+        # Check if the released position is a valid movement.
         if (x, y) in self.draggedPiece.get_moves(pos_x, pos_y):
             self.grid[y][x] = self.draggedPiece
             self.draggedPiece = None
@@ -166,7 +167,6 @@ class Board:
             self.grid[pos_y][pos_x] = self.draggedPiece
             self.draggedPiece = None
             self.draggedPosition = None
-
 
         self.render()
 
