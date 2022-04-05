@@ -37,19 +37,33 @@ class Board:
 
         self.reset_board()
 
-    def draw_movements(self, movements):
-        for offset in movements:
-            x = offset[0]
-            y = offset[1]
+    def draw_movements(self, movements, capture_movements, color: str):
+        for pos in movements:
+            (x, y) = pos
 
             # Draw a hollow on cell that doesn't have a piece
-            if not self.get_piece_at_position(x, y):
+            if not self.check_piece_at_position(x, y):
                 self.canvas.create_rectangle(
                     x * self.cellSize + self.cellSize * 0.2,
                     y * self.cellSize + self.cellSize * 0.2,
                     x * self.cellSize + self.cellSize * 0.8,
                     y * self.cellSize + self.cellSize * 0.8,
                     fill="#d4e157",
+                    outline="",
+                )
+
+        for pos in capture_movements:
+            (x, y) = pos
+
+            # Draw a hollow on cell that doesn't have a piece
+            capture_piece = self.get_piece_at_position(x, y)
+            if capture_piece and capture_piece.color != color:
+                self.canvas.create_rectangle(
+                    x * self.cellSize + self.cellSize * 0.2,
+                    y * self.cellSize + self.cellSize * 0.2,
+                    x * self.cellSize + self.cellSize * 0.8,
+                    y * self.cellSize + self.cellSize * 0.8,
+                    fill="#ef5350",
                     outline="",
                 )
 
@@ -83,18 +97,11 @@ class Board:
             (x, y) = self.hoverPosition[0], self.hoverPosition[1]
             piece = self.get_piece_at_position(x, y)
             if piece:
-                self.draw_movements(piece.get_moves(x, y))
-
-        # Show the movements of the currently moved piece
-        if self.draggedPiece:
-            (x, y) = self.draggedPosition[0], self.draggedPosition[1]
-            self.draw_movements(self.draggedPiece.get_moves(x, y))
-
-            self.canvas.create_image(
-                self.currentMousePosition[0],
-                self.currentMousePosition[1],
-                image=self.draggedPiece.image(self.cellSize),
-            )
+                self.draw_movements(
+                    piece.get_moves(x, y),
+                    piece.get_capture_moves(x, y),
+                    piece.color
+                )
 
         # Draw all the pieces
         for y in range(self.h):
@@ -105,6 +112,21 @@ class Board:
                         y * self.cellSize + self.cellSize // 2,
                         image=self.grid[y][x].image(self.cellSize),
                     )
+
+        # Show the movements of the currently moved piece
+        if self.draggedPiece:
+            (x, y) = self.draggedPosition[0], self.draggedPosition[1]
+            self.draw_movements(
+                self.draggedPiece.get_moves(x, y),
+                self.draggedPiece.get_capture_moves(x, y),
+                self.draggedPiece.color
+            )
+
+            self.canvas.create_image(
+                self.currentMousePosition[0],
+                self.currentMousePosition[1],
+                image=self.draggedPiece.image(self.cellSize),
+            )
 
     def convert_world_to_local(self, x: int, y: int) -> tuple[int, int]:
         """
@@ -154,21 +176,29 @@ class Board:
         """
         Handle click event on the board
         """
-        (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
 
-        (pos_x, pos_y) = self.draggedPosition[0], self.draggedPosition[1]
+        # Be sure that something is being dragged
+        if self.draggedPiece and self.draggedPosition:
+            (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
 
-        # Check if the released position is a valid movement.
-        if (x, y) in self.draggedPiece.get_moves(pos_x, pos_y):
-            self.grid[y][x] = self.draggedPiece
-            self.draggedPiece = None
-            self.draggedPosition = None
-        else:
-            self.grid[pos_y][pos_x] = self.draggedPiece
-            self.draggedPiece = None
-            self.draggedPosition = None
+            (pos_x, pos_y) = self.draggedPosition[0], self.draggedPosition[1]
 
-        self.render()
+            # Check if the released position is a valid movement.
+            destination_piece = self.get_piece_at_position(x, y)
+            if (
+                    (x, y) in self.draggedPiece.get_moves(pos_x, pos_y) and not destination_piece) or (
+                    (x, y) in self.draggedPiece.get_capture_moves(pos_x, pos_y)
+                    and destination_piece.color != self.draggedPiece.color
+            ):
+                self.grid[y][x] = self.draggedPiece
+                self.draggedPiece = None
+                self.draggedPosition = None
+            else:
+                self.grid[pos_y][pos_x] = self.draggedPiece
+                self.draggedPiece = None
+                self.draggedPosition = None
+
+            self.render()
 
     def on_mouse_move(self, motion: Event):
         self.currentMousePosition = (motion.x, motion.y)
