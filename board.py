@@ -1,6 +1,14 @@
-from tkinter import Event, Canvas
+from copy import deepcopy
+from tkinter import Event, Canvas, messagebox
 
 from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
+
+
+def enemy_color(color):
+    if color == "black":
+        return "white"
+    else:
+        return "black"
 
 
 class Board:
@@ -27,6 +35,9 @@ class Board:
         # Store the currently hovered piece
         self.hoverPosition = None
 
+        # Store the amount of pieces that make the king in check state
+        self.check = {"white": 0, "black": 0}
+
         # Store the current player
         self.player = "white"
 
@@ -40,8 +51,127 @@ class Board:
 
         self.reset_board()
 
-    def draw_movements(self, movements, capture_movements, color: str):
+    def get_all_captures_moves(self):
+        res = set()
+        for y in range(self.h):
+            for x in range(self.w):
+                piece = self.get_piece_at_position(x, y)
+                if piece:
+                    capture_moves = piece.get_capture_moves(x, y)
+
+                    for pos in capture_moves:
+                        res.add((piece.color, pos))
+        return res
+
+    def get_color_captures_moves(self, color: str):
+        res = set()
+        for y in range(self.h):
+            for x in range(self.w):
+                piece = self.get_piece_at_position(x, y)
+                if piece and piece.color == color:
+                    capture_moves = piece.get_capture_moves(x, y)
+
+                    for pos in capture_moves:
+                        res.add(((x, y), pos))
+        return res
+
+    def get_color_moves(self, color: str):
+        res = set()
+        for y in range(self.h):
+            for x in range(self.w):
+                piece = self.get_piece_at_position(x, y)
+                if piece and piece.color == color:
+                    capture_moves = piece.get_moves(x, y)
+
+                    for pos in capture_moves:
+                        res.add(((x, y), pos))
+        return res
+
+    def get_king_piece(self, color: str):
+        for y in range(self.h):
+            for x in range(self.w):
+                piece = self.get_piece_at_position(x, y)
+                if piece and piece.color == color and type(piece) == King:
+                    return (x, y), piece
+        return None
+
+    def is_color_in_check(self, color: str):
+        (king_pos, king_piece) = self.get_king_piece(color)
+        moves = self.get_color_captures_moves(enemy_color(color))
+
+        for (p1, p2) in moves:
+            if king_pos == p2:
+                return True
+
+        return False
+
+    def is_any_in_check(self):
+        return self.is_color_in_check("white") or self.is_color_in_check("black")
+
+    def emulate_check(self, p1, p2):
+        (p1_x, p1_y) = p1
+        (p2_x, p2_y) = p2
+        self.grid[p1_y][p1_x], self.grid[p2_y][p2_x] = (
+            self.grid[p2_y][p2_x],
+            self.grid[p1_y][p1_x],
+        )
+        check = self.is_color_in_check("black")
+        self.grid[p1_y][p1_x], self.grid[p2_y][p2_x] = (
+            self.grid[p2_y][p2_x],
+            self.grid[p1_y][p1_x],
+        )
+        return check
+
+    def verify_counter_check_with_capture(self, color):
+        # Test all the possible capture, to verify if the check goes away
+        for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_captures_moves(color):
+            if self.is_position_in_bound(p2_x, p2_y):
+                destination_piece = self.get_piece_at_position(p2_x, p2_y)
+                if destination_piece and destination_piece.color != color:
+                    # If there is a move that remove the check
+                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y)):
+                        return True
+        return False
+
+    def verify_counter_check_with_movement(self, color):
+        # Test all the possible capture, to verify if the check goes away
+        for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_moves(color):
+            if self.is_position_in_bound(p2_x, p2_y):
+                if not self.check_piece_at_position(p2_x, p2_y):
+                    # If there is a move that remove the check
+                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y)):
+                        return True
+        return False
+
+    def verify_for_checkmate(self):
+        if self.is_color_in_check("white"):
+            if self.player == "white":
+                if self.verify_counter_check_with_capture(
+                    "white"
+                ) or self.verify_counter_check_with_movement("white"):
+                    return False
+                else:
+                    return "white"
+            else:
+                return "white"
+
+        if self.is_color_in_check("black"):
+            if self.player == "black":
+                if self.verify_counter_check_with_capture(
+                    "black"
+                ) or self.verify_counter_check_with_movement("black"):
+                    return False
+                else:
+                    return "black"
+            else:
+                return "black"
+
+        return None
+
+    def draw_movements(self, movements, capture_movements, color: str, king: bool):
         if color == self.player:
+            if not king and self.is_color_in_check(color):
+                return
             for pos in movements:
                 (x, y) = pos
 
@@ -102,7 +232,10 @@ class Board:
             piece = self.get_piece_at_position(x, y)
             if piece:
                 self.draw_movements(
-                    piece.get_moves(x, y), piece.get_capture_moves(x, y), piece.color
+                    piece.get_moves(x, y),
+                    piece.get_capture_moves(x, y),
+                    piece.color,
+                    type(piece) == King,
                 )
 
         # Draw all the pieces
@@ -122,6 +255,7 @@ class Board:
                 self.draggedPiece.get_moves(x, y),
                 self.draggedPiece.get_capture_moves(x, y),
                 self.draggedPiece.color,
+                type(self.draggedPiece) == King,
             )
 
             self.canvas.create_image(
@@ -202,6 +336,14 @@ class Board:
                     self.player = "black"
                 else:
                     self.player = "white"
+
+                # After a movement has been made, check if any of the king are under check/checkmate
+                loser = self.verify_for_checkmate()
+                if loser:
+                    messagebox.showinfo(
+                        "Game Ended",
+                        f"{enemy_color(loser)} won!\n{loser} has a checkmate!",
+                    )
             else:
                 # Revert the movement
                 self.grid[pos_y][pos_x] = self.draggedPiece
