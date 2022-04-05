@@ -351,7 +351,7 @@ class Board:
                 and not destination_piece
             ) or (
                 (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
-                and destination_piece.color != self.draggedPiece.color
+                and destination_piece and destination_piece.color != self.draggedPiece.color
             ):
                 # Move the piece to the new position
                 self.grid[y][x] = self.draggedPiece
