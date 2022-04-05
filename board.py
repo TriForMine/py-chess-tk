@@ -98,9 +98,7 @@ class Board:
             piece = self.get_piece_at_position(x, y)
             if piece:
                 self.draw_movements(
-                    piece.get_moves(x, y),
-                    piece.get_capture_moves(x, y),
-                    piece.color
+                    piece.get_moves(x, y), piece.get_capture_moves(x, y), piece.color
                 )
 
         # Draw all the pieces
@@ -119,7 +117,7 @@ class Board:
             self.draw_movements(
                 self.draggedPiece.get_moves(x, y),
                 self.draggedPiece.get_capture_moves(x, y),
-                self.draggedPiece.color
+                self.draggedPiece.color,
             )
 
             self.canvas.create_image(
@@ -186,9 +184,11 @@ class Board:
             # Check if the released position is a valid movement.
             destination_piece = self.get_piece_at_position(x, y)
             if (
-                    (x, y) in self.draggedPiece.get_moves(pos_x, pos_y) and not destination_piece) or (
-                    (x, y) in self.draggedPiece.get_capture_moves(pos_x, pos_y)
-                    and destination_piece.color != self.draggedPiece.color
+                (x, y) in self.draggedPiece.get_moves(pos_x, pos_y)
+                and not destination_piece
+            ) or (
+                (x, y) in self.draggedPiece.get_capture_moves(pos_x, pos_y)
+                and destination_piece.color != self.draggedPiece.color
             ):
                 self.grid[y][x] = self.draggedPiece
                 self.draggedPiece = None
