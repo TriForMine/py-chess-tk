@@ -50,6 +50,9 @@ class Board:
         self.reset_board()
 
     def clone_grid(self, grid=None):
+        """
+        Clone a grid into a new one
+        """
         if not grid:
             grid = self.grid
         new_grid = []
@@ -61,22 +64,16 @@ class Board:
             new_grid.append(line)
         return new_grid
 
-    def get_all_captures_moves(self):
-        res = set()
-        for y in range(self.h):
-            for x in range(self.w):
-                piece = self.get_piece_at_position(x, y)
-                if piece:
-                    capture_moves = piece.get_capture_moves(self, x, y)
-
-                    for pos in capture_moves:
-                        res.add((piece.color, pos))
-        return res
-
     def get_color_captures_moves(self, color: str, grid=None):
+        """
+        Return all the capture movements that the specific color can do.
+        """
         if grid is None:
             grid = self.grid
         res = set()
+
+        # Goes through the whole grid, and fetch all the capture movements from the pieces. And add it to the set (
+        # duplicate not required).
         for y in range(self.h):
             for x in range(self.w):
                 piece = self.get_piece_at_position(x, y, grid)
@@ -88,9 +85,15 @@ class Board:
         return res
 
     def get_color_moves(self, color: str, grid=None):
+        """
+        Return all the movements that the specific color can do.
+        """
         if not grid:
             grid = self.grid
         res = set()
+
+        # Goes through the whole grid, and fetch all the movements from the pieces. And add it to the set (duplicate
+        # not required).
         for y in range(self.h):
             for x in range(self.w):
                 piece = self.get_piece_at_position(x, y, grid)
@@ -102,6 +105,9 @@ class Board:
         return res
 
     def get_king_piece(self, color: str, grid=None):
+        """
+        Return the king piece of the given color
+        """
         if not grid:
             grid = self.grid
         for y in range(self.h):
@@ -112,27 +118,33 @@ class Board:
         return None
 
     def is_color_in_check(self, color: str, grid=None):
+        """
+        Check if the provided color is in check state.
+        """
         if not grid:
             grid = self.grid
+
+        # Get the king, and all the enemy movements.
         (king_pos, king_piece) = self.get_king_piece(color, grid)
         moves = self.get_color_captures_moves(enemy_color(color), grid)
 
+        # And check if the king position is included in the movements of the enemy.
         for (p1, p2) in moves:
             if king_pos == p2:
                 return True
 
         return False
 
-    def is_any_in_check(self):
-        return self.is_color_in_check("white") or self.is_color_in_check("black")
-
-    def emulate_check(self, p1, p2):
+    def emulate_check(self, p1, p2, player):
+        """
+        Simulate a movement, and verify if it provokes a check for the player.
+        """
         tmp = self.clone_grid()
         (p1_x, p1_y) = p1
         (p2_x, p2_y) = p2
         tmp[p2_y][p2_x] = tmp[p1_y][p1_x]
         tmp[p1_y][p1_x] = None
-        return self.is_color_in_check("black", tmp)
+        return self.is_color_in_check(player, tmp)
 
     def verify_counter_check_with_capture(self, color):
         # Test all the possible capture, to verify if the check goes away
@@ -141,7 +153,7 @@ class Board:
                 destination_piece = self.get_piece_at_position(p2_x, p2_y)
                 if destination_piece and destination_piece.color != color:
                     # If there is a move that remove the check
-                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y)):
+                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color):
                         return True
         return False
 
@@ -151,11 +163,13 @@ class Board:
             if self.is_position_in_bound(p2_x, p2_y):
                 if not self.check_piece_at_position(p2_x, p2_y):
                     # If there is a move that remove the check
-                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y)):
+                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color):
                         return True
         return False
 
     def verify_for_checkmate(self):
+        # If the white player is in check, verify if the player has a way to avoid the check.
+        # If it's the black player turn, the white player has lost.
         if self.is_color_in_check("white"):
             if self.player == "white":
                 if self.verify_counter_check_with_capture(
@@ -167,6 +181,8 @@ class Board:
             else:
                 return "white"
 
+        # If the black player is in check, verify if the player has a way to avoid the check.
+        # If it's the white player turn, the black player has lost.
         if self.is_color_in_check("black"):
             if self.player == "black":
                 if self.verify_counter_check_with_capture(
@@ -181,6 +197,9 @@ class Board:
         return None
 
     def draw_movements(self, movements, capture_movements, color: str, king: bool):
+        """
+        Draw all the movement on the board.
+        """
         if color == self.player:
             if not king and self.is_color_in_check(color):
                 return
@@ -289,6 +308,9 @@ class Board:
         return self.w > x >= 0 and 0 <= y < self.h
 
     def get_piece_at_position(self, x: int, y: int, grid=None) -> Piece | None:
+        """
+        Return the piece at the provided position.
+        """
         if grid is None:
             grid = self.grid
         if not self.is_position_in_bound(x, y):
@@ -379,6 +401,7 @@ class Board:
         self.currentMousePosition = (motion.x, motion.y)
 
         if self.draggedPiece is None:
+            # Show the movements on the hovered piece, if no piece is being dragged.
             self.handle_hover(motion)
         else:
             # If there is a dragged piece, render the moving piece.

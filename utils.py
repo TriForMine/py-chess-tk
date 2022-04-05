@@ -8,7 +8,7 @@ def enemy_color(color: str):
         return "black"
 
 
-def calculate_total_score(grid: list[list[Piece]]):
+def calculate_total_score(grid: list[list[Piece | None]]):
     total_score = 0
     for y in range(len(grid)):
         for piece in grid[y]:
