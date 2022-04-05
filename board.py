@@ -167,7 +167,6 @@ class Board:
             self.draggedPiece = None
             self.draggedPosition = None
 
-
         self.render()
 
     def on_mouse_move(self, motion: Event):
