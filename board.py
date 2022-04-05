@@ -1,13 +1,9 @@
+from copy import copy
 from tkinter import Event, Canvas, messagebox
 
+from bot import Bot
 from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
-
-
-def enemy_color(color):
-    if color == "black":
-        return "white"
-    else:
-        return "black"
+from utils import enemy_color
 
 
 class Board:
@@ -40,6 +36,9 @@ class Board:
         # Store the current player
         self.player = "white"
 
+        # Store an instance of the bot class
+        self.bot = Bot(self)
+
         # Store the currently dragged piece and it's position
         self.currentMousePosition = None
         self.draggedPiece = None
@@ -50,53 +49,73 @@ class Board:
 
         self.reset_board()
 
+    def clone_grid(self, grid=None):
+        if not grid:
+            grid = self.grid
+        new_grid = []
+
+        for y in range(self.h):
+            line = []
+            for x in range(self.w):
+                line.append(copy(grid[y][x]))
+            new_grid.append(line)
+        return new_grid
+
     def get_all_captures_moves(self):
         res = set()
         for y in range(self.h):
             for x in range(self.w):
                 piece = self.get_piece_at_position(x, y)
                 if piece:
-                    capture_moves = piece.get_capture_moves(x, y)
+                    capture_moves = piece.get_capture_moves(self, x, y)
 
                     for pos in capture_moves:
                         res.add((piece.color, pos))
         return res
 
-    def get_color_captures_moves(self, color: str):
+    def get_color_captures_moves(self, color: str, grid=None):
+        if grid is None:
+            grid = self.grid
         res = set()
         for y in range(self.h):
             for x in range(self.w):
-                piece = self.get_piece_at_position(x, y)
+                piece = self.get_piece_at_position(x, y, grid)
                 if piece and piece.color == color:
-                    capture_moves = piece.get_capture_moves(x, y)
+                    capture_moves = piece.get_capture_moves(self, x, y)
 
                     for pos in capture_moves:
                         res.add(((x, y), pos))
         return res
 
-    def get_color_moves(self, color: str):
+    def get_color_moves(self, color: str, grid=None):
+        if not grid:
+            grid = self.grid
         res = set()
         for y in range(self.h):
             for x in range(self.w):
-                piece = self.get_piece_at_position(x, y)
+                piece = self.get_piece_at_position(x, y, grid)
                 if piece and piece.color == color:
-                    capture_moves = piece.get_moves(x, y)
+                    capture_moves = piece.get_moves(self, x, y)
 
                     for pos in capture_moves:
                         res.add(((x, y), pos))
         return res
 
-    def get_king_piece(self, color: str):
+    def get_king_piece(self, color: str, grid=None):
+        if not grid:
+            grid = self.grid
         for y in range(self.h):
             for x in range(self.w):
-                piece = self.get_piece_at_position(x, y)
+                piece = self.get_piece_at_position(x, y, grid)
                 if piece and piece.color == color and type(piece) is King:
                     return (x, y), piece
         return None
 
-    def is_color_in_check(self, color: str):
-        (king_pos, king_piece) = self.get_king_piece(color)
-        moves = self.get_color_captures_moves(enemy_color(color))
+    def is_color_in_check(self, color: str, grid=None):
+        if not grid:
+            grid = self.grid
+        (king_pos, king_piece) = self.get_king_piece(color, grid)
+        moves = self.get_color_captures_moves(enemy_color(color), grid)
 
         for (p1, p2) in moves:
             if king_pos == p2:
@@ -108,18 +127,12 @@ class Board:
         return self.is_color_in_check("white") or self.is_color_in_check("black")
 
     def emulate_check(self, p1, p2):
+        tmp = self.clone_grid()
         (p1_x, p1_y) = p1
         (p2_x, p2_y) = p2
-        self.grid[p1_y][p1_x], self.grid[p2_y][p2_x] = (
-            self.grid[p2_y][p2_x],
-            self.grid[p1_y][p1_x],
-        )
-        check = self.is_color_in_check("black")
-        self.grid[p1_y][p1_x], self.grid[p2_y][p2_x] = (
-            self.grid[p2_y][p2_x],
-            self.grid[p1_y][p1_x],
-        )
-        return check
+        tmp[p2_y][p2_x] = tmp[p1_y][p1_x]
+        tmp[p1_y][p1_x] = None
+        return self.is_color_in_check("black", tmp)
 
     def verify_counter_check_with_capture(self, color):
         # Test all the possible capture, to verify if the check goes away
@@ -231,8 +244,8 @@ class Board:
             piece = self.get_piece_at_position(x, y)
             if piece:
                 self.draw_movements(
-                    piece.get_moves(x, y),
-                    piece.get_capture_moves(x, y),
+                    piece.get_moves(self, x, y),
+                    piece.get_capture_moves(self, x, y),
                     piece.color,
                     type(piece) is King,
                 )
@@ -251,8 +264,8 @@ class Board:
         if self.draggedPiece:
             (x, y) = self.draggedPosition[0], self.draggedPosition[1]
             self.draw_movements(
-                self.draggedPiece.get_moves(x, y),
-                self.draggedPiece.get_capture_moves(x, y),
+                self.draggedPiece.get_moves(self, x, y),
+                self.draggedPiece.get_capture_moves(self, x, y),
                 self.draggedPiece.color,
                 type(self.draggedPiece) is King,
             )
@@ -275,18 +288,22 @@ class Board:
         """
         return self.w > x >= 0 and 0 <= y < self.h
 
-    def get_piece_at_position(self, x: int, y: int) -> Piece | None:
+    def get_piece_at_position(self, x: int, y: int, grid=None) -> Piece | None:
+        if grid is None:
+            grid = self.grid
         if not self.is_position_in_bound(x, y):
             return None
-        return self.grid[y][x]
+        return grid[y][x]
 
-    def check_piece_at_position(self, x: int, y: int) -> bool:
+    def check_piece_at_position(self, x: int, y: int, grid=None) -> bool:
         """
         Check if there is a piece at the given position
         """
+        if grid is None:
+            grid = self.grid
         if not self.is_position_in_bound(x, y):
             return False
-        return self.grid[y][x] is not None
+        return grid[y][x] is not None
 
     def handle_drag_start(self, button_press: Event):
         """
@@ -321,10 +338,10 @@ class Board:
             destination_piece = self.get_piece_at_position(x, y)
             # Check if the released position is a valid movement.
             if (
-                (x, y) in self.draggedPiece.get_moves(pos_x, pos_y)
+                (x, y) in self.draggedPiece.get_moves(self, pos_x, pos_y)
                 and not destination_piece
             ) or (
-                (x, y) in self.draggedPiece.get_capture_moves(pos_x, pos_y)
+                (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
                 and destination_piece.color != self.draggedPiece.color
             ):
                 # Move the piece to the new position
@@ -334,6 +351,13 @@ class Board:
                 if self.player == "white":
                     self.player = "black"
                 else:
+                    self.player = "white"
+
+                if self.player == "black":
+                    ((s_x, s_y), (e_x, e_y), score) = self.bot.play("black")
+
+                    self.grid[e_y][e_x] = self.grid[s_y][s_x]
+                    self.grid[s_y][s_x] = None
                     self.player = "white"
 
                 # After a movement has been made, check if any of the king are under check/checkmate
@@ -387,25 +411,25 @@ class Board:
         Reset the board to the initial state
         """
         for x in range(self.w):
-            self.grid[1][x] = Pawn(self, "black")
-            self.grid[self.h - 2][x] = Pawn(self, "white")
+            self.grid[1][x] = Pawn("black")
+            self.grid[self.h - 2][x] = Pawn("white")
 
             if x in (0, self.w - 1):
-                self.grid[0][x] = Rook(self, "black")
-                self.grid[self.h - 1][x] = Rook(self, "white")
+                self.grid[0][x] = Rook("black")
+                self.grid[self.h - 1][x] = Rook("white")
 
             elif x in (1, self.w - 2):
-                self.grid[0][x] = Knight(self, "black")
-                self.grid[self.h - 1][x] = Knight(self, "white")
+                self.grid[0][x] = Knight("black")
+                self.grid[self.h - 1][x] = Knight("white")
 
             elif x in (2, self.w - 3):
-                self.grid[0][x] = Bishop(self, "black")
-                self.grid[self.h - 1][x] = Bishop(self, "white")
+                self.grid[0][x] = Bishop("black")
+                self.grid[self.h - 1][x] = Bishop("white")
 
             elif x == 3:
-                self.grid[0][x] = Queen(self, "black")
-                self.grid[self.h - 1][x] = Queen(self, "white")
+                self.grid[0][x] = Queen("black")
+                self.grid[self.h - 1][x] = Queen("white")
 
             elif x == 4:
-                self.grid[0][x] = King(self, "black")
-                self.grid[self.h - 1][x] = King(self, "white")
+                self.grid[0][x] = King("black")
+                self.grid[self.h - 1][x] = King("white")
