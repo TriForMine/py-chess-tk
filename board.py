@@ -91,7 +91,7 @@ class Board:
         for y in range(self.h):
             for x in range(self.w):
                 piece = self.get_piece_at_position(x, y)
-                if piece and piece.color == color and type(piece) == King:
+                if piece and piece.color == color and type(piece) is King:
                     return (x, y), piece
         return None
 
@@ -235,7 +235,7 @@ class Board:
                     piece.get_moves(x, y),
                     piece.get_capture_moves(x, y),
                     piece.color,
-                    type(piece) == King,
+                    type(piece) is King,
                 )
 
         # Draw all the pieces
@@ -255,7 +255,7 @@ class Board:
                 self.draggedPiece.get_moves(x, y),
                 self.draggedPiece.get_capture_moves(x, y),
                 self.draggedPiece.color,
-                type(self.draggedPiece) == King,
+                type(self.draggedPiece) is King,
             )
 
             self.canvas.create_image(
