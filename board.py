@@ -1,10 +1,20 @@
-from tkinter import Event
+from tkinter import Event, Canvas
 
 from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
 
 
 class Board:
+    w: int
+    h: int
+    cellSize: int
     grid: list[list[Piece | None]]
+    canvas: Canvas
+    hoverPosition: tuple[int, int] | None
+    currentMousePosition: tuple[int, int] | None
+    draggedPiece: Piece | None
+    draggedPosition: tuple[int, int] | None
+    last_x: int
+    last_y: int
 
     def __init__(self, canvas, width: int, height: int, cell_size: int):
         self.w = width
@@ -13,12 +23,35 @@ class Board:
         # Generate the grid matrix to empty by default
         self.grid = [[None for _ in range(width)] for _ in range(height)]
         self.canvas = canvas
+
+        # Store the currently hovered piece
         self.hoverPosition = None
+
+        # Store the currently dragged piece and it's position
+        self.currentMousePosition = None
+        self.draggedPiece = None
+        self.draggedPosition = None
 
         self.last_x = -1
         self.last_y = -1
 
         self.reset_board()
+
+    def draw_movements(self, movements):
+        for offset in movements:
+            x = offset[0]
+            y = offset[1]
+
+            # Draw a hollow on cell that doesn't have a piece
+            if not self.get_piece_at_position(x, y):
+                self.canvas.create_rectangle(
+                    x * self.cellSize + self.cellSize * 0.2,
+                    y * self.cellSize + self.cellSize * 0.2,
+                    x * self.cellSize + self.cellSize * 0.8,
+                    y * self.cellSize + self.cellSize * 0.8,
+                    fill="#d4e157",
+                    outline="",
+                )
 
     def render(self):
         """
@@ -49,21 +82,19 @@ class Board:
         if self.hoverPosition:
             (x, y) = self.hoverPosition[0], self.hoverPosition[1]
             piece = self.get_piece_at_position(x, y)
-            movements = piece.get_moves(x, y)
+            if piece:
+                self.draw_movements(piece.get_moves(x, y))
 
-            for offset in movements:
-                x = offset[0]
-                y = offset[1]
+        # Show the movements of the currently moved piece
+        if self.draggedPiece:
+            (x, y) = self.draggedPosition[0], self.draggedPosition[1]
+            self.draw_movements(self.draggedPiece.get_moves(x, y))
 
-                if not self.get_piece_at_position(x, y):
-                    self.canvas.create_rectangle(
-                        x * self.cellSize,
-                        y * self.cellSize,
-                        x * self.cellSize + self.cellSize,
-                        y * self.cellSize + self.cellSize,
-                        fill="#d4e157",
-                        outline="",
-                    )
+            self.canvas.create_image(
+                self.currentMousePosition[0],
+                self.currentMousePosition[1],
+                image=self.draggedPiece.image(self.cellSize),
+                )
 
         # Draw all the pieces
         for y in range(self.h):
@@ -100,15 +131,51 @@ class Board:
             return False
         return self.grid[y][x] is not None
 
-    def handle_click(self, button_press: Event):
+    def handle_drag_start(self, button_press: Event):
         """
         Handle click event on the board
         """
         (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
-        if self.check_piece_at_position(x, y):
-            self.start_move(x, y)
+        piece = self.get_piece_at_position(x, y)
+        # If there is no piece at the clicked position, ignore the left click
+        if not piece:
+            return
 
+        self.draggedPiece = piece
+        self.draggedPosition = (x, y)
+
+        # Remove the piece from the board, so it can be drawn on the mouse position
         self.grid[y][x] = None
+
+        # Render the board again to hide the dragged piece from the grid
+        self.render()
+
+    def handle_drag_end(self, button_press: Event):
+        """
+        Handle click event on the board
+        """
+        (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
+
+        # Check if the released position contains a piece, if it does revert the movement.
+        if self.check_piece_at_position(x, y):
+            self.grid[self.draggedPosition[1]][self.draggedPosition[0]] = self.draggedPiece
+            self.draggedPiece = None
+            self.draggedPosition = None
+        else:
+            self.grid[y][x] = self.draggedPiece
+            self.draggedPiece = None
+            self.draggedPosition = None
+
+        self.render()
+
+    def on_mouse_move(self, motion: Event):
+        self.currentMousePosition = (motion.x, motion.y)
+
+        if self.draggedPiece is None:
+            self.handle_hover(motion)
+        else:
+            # If there is a dragged piece, render the moving piece.
+            self.render()
 
     def handle_hover(self, motion: Event):
         """
@@ -159,6 +226,3 @@ class Board:
             elif x == 4:
                 self.grid[0][x] = King(self, "black")
                 self.grid[self.h - 1][x] = King(self, "white")
-
-    def start_move(self, x: int, y: int):
-        pass

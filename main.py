@@ -20,8 +20,10 @@ class MainGUI(Frame):
         # Make the window not resizable
         self.winfo_toplevel().resizable(False, False)
 
-        # Detect left click
-        self.master.bind("<Button-1>", self.on_click)
+        # Detect left mouse button down
+        self.master.bind("<ButtonPress-1>", self.on_mouse_down)
+        # Detect left mouse button up
+        self.master.bind("<ButtonRelease-1>", self.on_mouse_up)
         # Detect mouse movement
         self.master.bind("<Motion>", self.on_mouse_move)
 
@@ -30,11 +32,14 @@ class MainGUI(Frame):
 
         self.canvas.pack(fill=BOTH, expand=1)
 
-    def on_click(self, click_event: Event):
-        self.board.handle_click(click_event)
+    def on_mouse_down(self, click_event: Event):
+        self.board.handle_drag_start(click_event)
+
+    def on_mouse_up(self, click_event: Event):
+        self.board.handle_drag_end(click_event)
 
     def on_mouse_move(self, motion: Event):
-        self.board.handle_hover(motion)
+        self.board.on_mouse_move(motion)
 
 
 root = Tk()
