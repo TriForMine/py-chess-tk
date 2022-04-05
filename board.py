@@ -94,7 +94,7 @@ class Board:
                 self.currentMousePosition[0],
                 self.currentMousePosition[1],
                 image=self.draggedPiece.image(self.cellSize),
-                )
+            )
 
         # Draw all the pieces
         for y in range(self.h):
@@ -158,7 +158,9 @@ class Board:
 
         # Check if the released position contains a piece, if it does revert the movement.
         if self.check_piece_at_position(x, y):
-            self.grid[self.draggedPosition[1]][self.draggedPosition[0]] = self.draggedPiece
+            self.grid[self.draggedPosition[1]][
+                self.draggedPosition[0]
+            ] = self.draggedPiece
             self.draggedPiece = None
             self.draggedPosition = None
         else:
