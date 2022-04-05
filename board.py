@@ -156,17 +156,17 @@ class Board:
         """
         (x, y) = self.convert_world_to_local(button_press.x, button_press.y)
 
-        # Check if the released position contains a piece, if it does revert the movement.
-        if self.check_piece_at_position(x, y):
-            self.grid[self.draggedPosition[1]][
-                self.draggedPosition[0]
-            ] = self.draggedPiece
-            self.draggedPiece = None
-            self.draggedPosition = None
-        else:
+        # Check if the released position is a valid movement.
+        (pos_x, pos_y) = self.draggedPosition[0], self.draggedPosition[1]
+        if (x, y) in self.draggedPiece.get_moves(pos_x, pos_y):
             self.grid[y][x] = self.draggedPiece
             self.draggedPiece = None
             self.draggedPosition = None
+        else:
+            self.grid[pos_y][pos_x] = self.draggedPiece
+            self.draggedPiece = None
+            self.draggedPosition = None
+
 
         self.render()
 
