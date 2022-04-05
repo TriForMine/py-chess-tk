@@ -98,7 +98,9 @@ class Board:
 
                         for pos in moves:
                             (pos_x, pos_y) = pos
-                            if self.is_position_in_bound(pos_x, pos_y) and not self.check_piece_at_position(pos_x, pos_y):
+                            if self.is_position_in_bound(
+                                pos_x, pos_y
+                            ) and not self.check_piece_at_position(pos_x, pos_y):
                                 res.add(((x, y), pos))
 
         return res
@@ -162,9 +164,7 @@ class Board:
         # If it's the black player turn, the white player has lost.
         if self.is_color_in_check("white"):
             if self.player == "white":
-                if self.verify_counter_check(
-                    "white"
-                ):
+                if self.verify_counter_check("white"):
                     return False
                 else:
                     return "white"
@@ -175,9 +175,7 @@ class Board:
         # If it's the white player turn, the black player has lost.
         if self.is_color_in_check("black"):
             if self.player == "black":
-                if self.verify_counter_check(
-                    "black"
-                ):
+                if self.verify_counter_check("black"):
                     return False
                 else:
                     return "black"

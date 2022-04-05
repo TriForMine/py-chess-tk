@@ -27,10 +27,18 @@ class MainGUI(Frame):
         settings_menu.add_command(label="Enable Bot", command=self.bot_dialog)
 
         levels = Menu(menubar, tearoff=0)
-        levels.add_command(label="Level 2 (Quick)", command=lambda: self.select_bot_difficulty(2))
-        levels.add_command(label="Level 3 (Fast)", command=lambda: self.select_bot_difficulty(3))
-        levels.add_command(label="Level 4 (Slow)", command=lambda: self.select_bot_difficulty(4))
-        levels.add_command(label="Level 5 (Turtle)", command=lambda: self.select_bot_difficulty(5))
+        levels.add_command(
+            label="Level 2 (Quick)", command=lambda: self.select_bot_difficulty(2)
+        )
+        levels.add_command(
+            label="Level 3 (Fast)", command=lambda: self.select_bot_difficulty(3)
+        )
+        levels.add_command(
+            label="Level 4 (Slow)", command=lambda: self.select_bot_difficulty(4)
+        )
+        levels.add_command(
+            label="Level 5 (Turtle)", command=lambda: self.select_bot_difficulty(5)
+        )
         settings_menu.add_cascade(label="Bot Difficulty", menu=levels)
 
         settings_menu.add_separator()
@@ -57,18 +65,25 @@ class MainGUI(Frame):
         self.canvas.pack(fill=BOTH, expand=1)
 
     def restart_dialog(self):
-        if messagebox.askokcancel("Confirmation", "Are you sure that you want to restart the game?"):
+        if messagebox.askokcancel(
+            "Confirmation", "Are you sure that you want to restart the game?"
+        ):
             self.board.reset_board()
 
     def bot_dialog(self):
-        self.board.playWithBot = messagebox.askyesno("Game Mode", "Do you want to play with a bot?")
+        self.board.playWithBot = messagebox.askyesno(
+            "Game Mode", "Do you want to play with a bot?"
+        )
 
     def open_about(self):
-        self.board.playWithBot = messagebox.showinfo("Info", "Made by TriForMine\nhttps://www.triformine.dev/\n"
-                                                             "\nPowered by Python and Tkinter\n\nSource Code "
-                                                             "available "
-                                                             "at:\nhttps://github.com/TriForMine/py-chess-tk\nUnder "
-                                                             "Apache-2.0 License")
+        self.board.playWithBot = messagebox.showinfo(
+            "Info",
+            "Made by TriForMine\nhttps://www.triformine.dev/\n"
+            "\nPowered by Python and Tkinter\n\nSource Code "
+            "available "
+            "at:\nhttps://github.com/TriForMine/py-chess-tk\nUnder "
+            "Apache-2.0 License",
+        )
 
     def select_bot_difficulty(self, difficulty: int):
         self.board.bot.depth = difficulty

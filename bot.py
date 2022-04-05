@@ -46,7 +46,10 @@ class Bot:
                 tmp[e_y][e_x], tmp[s_y][s_x] = tmp[s_y][s_x], None
 
                 # Get the best score you can get from that tree branch
-                best_move = max(best_move, self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta))
+                best_move = max(
+                    best_move,
+                    self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta),
+                )
 
                 alpha = max(alpha, best_move)
 
@@ -66,7 +69,10 @@ class Bot:
                 tmp[e_y][e_x], tmp[s_y][s_x] = tmp[s_y][s_x], None
 
                 # Get the best score you can get from that tree branch
-                best_move = min(best_move, self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta))
+                best_move = min(
+                    best_move,
+                    self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta),
+                )
 
                 beta = min(beta, best_move)
 
@@ -81,7 +87,9 @@ class Bot:
 
         # Goes through all the children, and choose the next move that should be done.
         for (s, e) in self.board.get_color_all_moves(color, self.board.grid):
-            node_minimax = self.minimax(depth - 1, self.board.grid, color == "white", -10000, 10000)
+            node_minimax = self.minimax(
+                depth - 1, self.board.grid, color == "white", -10000, 10000
+            )
             if best_next_score >= node_minimax:
                 best_next_score = node_minimax
                 best_next_node = (s, e)
