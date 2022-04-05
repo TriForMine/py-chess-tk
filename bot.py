@@ -1,5 +1,7 @@
-from tree import Node
-from utils import calculate_total_score, enemy_color
+from math import inf
+from utils import calculate_total_score
+
+count = 0
 
 
 class Bot:
@@ -24,95 +26,64 @@ class Bot:
 
         return tmp, calculate_total_score(tmp)
 
-    def generate_minimax_subtree(self, tree, depth=0, grid=None, player="black"):
-        # Stop when the tree has been fully traversed
+    def minimax(self, depth, grid, is_maximizing, alpha, beta):
         if depth == 0:
-            return None
+            return -calculate_total_score(grid)
 
-        # Goes through all the possible capture movements
-        for (s, e) in self.board.get_color_captures_moves(player, grid):
-
-            piece = self.board.get_piece_at_position(s[0], s[1], grid)
-
-            # Be sure that the provided movement is valid
-            if piece and self.board.is_position_in_bound(e[0], e[1]):
-                target = self.board.get_piece_at_position(e[0], e[1], grid)
-
-                # Be sure that the target isn't an ally
-                if target and target.color != player:
-                    # Simulate the score after a movement
-                    (new_grid, score) = self.calculate_movement_score(s, e, grid)
-                    # Make a new node containing the movement information and the score
-                    node = Node((s, e, score))
-
-                    # Recursively generate all the possible movements, after the previous movement was made
-                    self.generate_minimax_subtree(
-                        node, depth - 1, new_grid, enemy_color(player)
-                    )
-
-                    # Add the node the root
-                    tree.add_node(node)
-
-        # Goes through all the possible movements
-        for (s, e) in self.board.get_color_moves(player, grid):
-
-            piece = self.board.get_piece_at_position(s[0], s[1], grid)
-
-            # Be sure that the provided movement is valid
-            if piece and self.board.is_position_in_bound(e[0], e[1]):
-                # Be sure that the movement doesn't go over a piece
-                if not self.board.check_piece_at_position(e[0], e[1], grid):
-                    # Simulate the score after a movement
-                    (new_grid, score) = self.calculate_movement_score(s, e, grid)
-                    # Make a new node containing the movement information and the score
-                    node = Node((s, e, score))
-
-                    # Recursively generate all the possible movements, after the previous movement was made
-                    self.generate_minimax_subtree(
-                        node, depth - 1, new_grid, enemy_color(player)
-                    )
-
-                    # Add the node the root
-                    tree.add_node(node)
-
-    def generate_minimax_tree(self, depth=2, player="black"):
-        # Generate the root, and set the data to the initial score.
-        new_tree = Node(calculate_total_score(self.board.grid))
-
-        # Generate all the nodes of that tree.
-        self.generate_minimax_subtree(new_tree, depth, self.board.grid, player)
-
-        return new_tree
-
-    def minimax(self, tree, is_maximizing):
-        if not tree.children:
-            return tree.data[2]
+        # Get all the moves possible on the new grid.
+        new_moves = self.board.get_color_all_moves("black", grid)
 
         # If the player is the bot, try to get the best score.
         if is_maximizing:
-            best_move = -9999
-            for node in tree.children:
+            best_move = -inf
+            for (s, e) in new_moves:
+                # Clone the grid so movement can be done without impacting the game.
+                tmp = self.board.clone_grid(grid)
+
+                (s_x, s_y) = s
+                (e_x, e_y) = e
+                # Move the piece from s to e
+                tmp[e_y][e_x], tmp[s_y][s_x] = tmp[s_y][s_x], None
+
                 # Get the best score you can get from that tree branch
-                best_move = max(best_move, self.minimax(node, False))
+                best_move = max(best_move, self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta))
+
+                alpha = max(alpha, best_move)
+
+                if beta <= alpha:
+                    return best_move
+
             return best_move
         # If the player is not the bot, try to choose the best score for him.
         else:
-            best_move = 9999
-            for node in tree.children:
+            best_move = inf
+            for (s, e) in new_moves:
+                tmp = self.board.clone_grid(grid)
+
+                (s_x, s_y) = s
+                (e_x, e_y) = e
+                # Move the piece from s to e
+                tmp[e_y][e_x], tmp[s_y][s_x] = tmp[s_y][s_x], None
+
                 # Get the best score you can get from that tree branch
-                best_move = min(best_move, self.minimax(node, False))
+                best_move = min(best_move, self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta))
+
+                beta = min(beta, best_move)
+
+                if beta <= alpha:
+                    return best_move
+
             return best_move
 
     def get_minimax_move(self, depth=3, color="black"):
-        # Generate the top root of the tree, and goes through the first layer
-        tree = self.generate_minimax_tree(depth, color)
         best_next_score = 9999
         best_next_node = None
 
         # Goes through all the children, and choose the next move that should be done.
-        for node in tree.children:
-            node_minimax = self.minimax(node, color == "white")
-            if best_next_score > node_minimax:
+        for (s, e) in self.board.get_color_all_moves(color, self.board.grid):
+            node_minimax = self.minimax(depth - 1, self.board.grid, color == "white", -10000, 10000)
+            if best_next_score >= node_minimax:
                 best_next_score = node_minimax
-                best_next_node = node.data
+                best_next_node = (s, e)
+
         return best_next_node

@@ -16,6 +16,9 @@ class Piece:
     def possible_moves(self, board, x: int, y: int, capture: bool):
         raise Exception("The piece doesn't implement any movements")
 
+    def clone(self):
+        raise Exception("The piece doesn't implement clone()")
+
     def get_moves(self, board, x: int, y: int):
         return self.possible_moves(board, x, y, False)
 
@@ -172,6 +175,9 @@ class Pawn(Piece):
     def image_path(self):
         return f"./images/pawn_{self.color}.png"
 
+    def clone(self):
+        return Pawn(self.color)
+
 
 class Knight(Piece):
     def __init__(self, color):
@@ -198,6 +204,9 @@ class Knight(Piece):
     def image_path(self):
         return f"./images/knight_{self.color}.png"
 
+    def clone(self):
+        return Knight(self.color)
+
 
 class Rook(Piece):
     def __init__(self, color):
@@ -212,6 +221,9 @@ class Rook(Piece):
     def image_path(self):
         return f"./images/rook_{self.color}.png"
 
+    def clone(self):
+        return Rook(self.color)
+
 
 class Bishop(Piece):
     def __init__(self, color):
@@ -223,6 +235,9 @@ class Bishop(Piece):
 
     def image_path(self):
         return f"./images/bishop_{self.color}.png"
+
+    def clone(self):
+        return Bishop(self.color)
 
 
 class Queen(Piece):
@@ -240,6 +255,9 @@ class Queen(Piece):
     def image_path(self):
         return f"./images/queen_{self.color}.png"
 
+    def clone(self):
+        return Queen(self.color)
+
 
 class King(Piece):
     def __init__(self, color):
@@ -255,3 +273,6 @@ class King(Piece):
 
     def image_path(self):
         return f"./images/king_{self.color}.png"
+
+    def clone(self):
+        return King(self.color)

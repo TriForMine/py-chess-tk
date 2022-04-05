@@ -1,4 +1,4 @@
-from copy import copy
+from time import time
 from tkinter import Event, Canvas, messagebox
 
 from bot import Bot
@@ -30,14 +30,20 @@ class Board:
         # Store the currently hovered piece
         self.hoverPosition = None
 
-        # Store the amount of pieces that make the king in check state
-        self.check = {"white": 0, "black": 0}
-
         # Store the current player
         self.player = "white"
 
         # Store an instance of the bot class
-        self.bot = Bot(self)
+        # If you make the bot using more than 3 in depth, it will start to be slow!
+
+        # Choose between 3-5
+        # 3 takes around 0.08 seconds
+        # 4 takes around 1/2 seconds
+        # 5 takes around 5/10 seconds per turn
+        self.bot = Bot(self, 3)
+
+        # Store the choice of user, playing against a bot or another player
+        self.playWithBot = True
 
         # Store the currently dragged piece and it's position
         self.currentMousePosition = None
@@ -55,53 +61,46 @@ class Board:
         """
         if not grid:
             grid = self.grid
-        new_grid = []
+        new_grid = [[None for _ in range(self.w)] for _ in range(self.h)]
 
         for y in range(self.h):
-            line = []
             for x in range(self.w):
-                line.append(copy(grid[y][x]))
-            new_grid.append(line)
+                if grid[y][x]:
+                    new_grid[y][x] = grid[y][x].clone()
         return new_grid
 
-    def get_color_captures_moves(self, color: str, grid=None):
-        """
-        Return all the capture movements that the specific color can do.
-        """
+    def get_color_all_moves(self, color: str, grid=None):
         if grid is None:
             grid = self.grid
+
+        # Use set since you don't want to check multiple moves more than once.
         res = set()
 
-        # Goes through the whole grid, and fetch all the capture movements from the pieces. And add it to the set (
-        # duplicate not required).
         for y in range(self.h):
             for x in range(self.w):
                 piece = self.get_piece_at_position(x, y, grid)
                 if piece and piece.color == color:
                     capture_moves = piece.get_capture_moves(self, x, y)
+                    moves = piece.get_moves(self, x, y)
 
-                    for pos in capture_moves:
-                        res.add(((x, y), pos))
-        return res
+                    # If moves and captures moves are same, only loop once
+                    if moves == capture_moves:
+                        for pos in moves:
+                            (pos_x, pos_y) = pos
+                            if self.is_position_in_bound(pos_x, pos_y):
+                                res.add(((x, y), pos))
+                    else:
+                        for pos in capture_moves:
+                            (pos_x, pos_y) = pos
+                            target = self.get_piece_at_position(pos_x, pos_y)
+                            if target and target.color != piece.color:
+                                res.add(((x, y), pos))
 
-    def get_color_moves(self, color: str, grid=None):
-        """
-        Return all the movements that the specific color can do.
-        """
-        if not grid:
-            grid = self.grid
-        res = set()
+                        for pos in moves:
+                            (pos_x, pos_y) = pos
+                            if self.is_position_in_bound(pos_x, pos_y) and not self.check_piece_at_position(pos_x, pos_y):
+                                res.add(((x, y), pos))
 
-        # Goes through the whole grid, and fetch all the movements from the pieces. And add it to the set (duplicate
-        # not required).
-        for y in range(self.h):
-            for x in range(self.w):
-                piece = self.get_piece_at_position(x, y, grid)
-                if piece and piece.color == color:
-                    capture_moves = piece.get_moves(self, x, y)
-
-                    for pos in capture_moves:
-                        res.add(((x, y), pos))
         return res
 
     def get_king_piece(self, color: str, grid=None):
@@ -115,7 +114,9 @@ class Board:
                 piece = self.get_piece_at_position(x, y, grid)
                 if piece and piece.color == color and type(piece) is King:
                     return (x, y), piece
-        return None
+
+        self.reset_board()
+        messagebox.showwarning("Warning", "The game has ended, the board was reset.")
 
     def is_color_in_check(self, color: str, grid=None):
         """
@@ -125,8 +126,11 @@ class Board:
             grid = self.grid
 
         # Get the king, and all the enemy movements.
-        (king_pos, king_piece) = self.get_king_piece(color, grid)
-        moves = self.get_color_captures_moves(enemy_color(color), grid)
+        king = self.get_king_piece(color, grid)
+        if not king:
+            return True
+        (king_pos, king_piece) = king
+        moves = self.get_color_all_moves(enemy_color(color), grid)
 
         # And check if the king position is included in the movements of the enemy.
         for (p1, p2) in moves:
@@ -146,25 +150,11 @@ class Board:
         tmp[p1_y][p1_x] = None
         return self.is_color_in_check(player, tmp)
 
-    def verify_counter_check_with_capture(self, color):
-        # Test all the possible capture, to verify if the check goes away
-        for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_captures_moves(color):
-            if self.is_position_in_bound(p2_x, p2_y):
-                destination_piece = self.get_piece_at_position(p2_x, p2_y)
-                if destination_piece and destination_piece.color != color:
-                    # If there is a move that remove the check
-                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color):
-                        return True
-        return False
-
-    def verify_counter_check_with_movement(self, color):
-        # Test all the possible capture, to verify if the check goes away
-        for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_moves(color):
-            if self.is_position_in_bound(p2_x, p2_y):
-                if not self.check_piece_at_position(p2_x, p2_y):
-                    # If there is a move that remove the check
-                    if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color):
-                        return True
+    def verify_counter_check(self, color):
+        # Test all the possible movements, to verify if the check goes away
+        for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_all_moves(color):
+            if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color):
+                return True
         return False
 
     def verify_for_checkmate(self):
@@ -172,9 +162,9 @@ class Board:
         # If it's the black player turn, the white player has lost.
         if self.is_color_in_check("white"):
             if self.player == "white":
-                if self.verify_counter_check_with_capture(
+                if self.verify_counter_check(
                     "white"
-                ) or self.verify_counter_check_with_movement("white"):
+                ):
                     return False
                 else:
                     return "white"
@@ -185,9 +175,9 @@ class Board:
         # If it's the white player turn, the black player has lost.
         if self.is_color_in_check("black"):
             if self.player == "black":
-                if self.verify_counter_check_with_capture(
+                if self.verify_counter_check(
                     "black"
-                ) or self.verify_counter_check_with_movement("black"):
+                ):
                     return False
                 else:
                     return "black"
@@ -244,9 +234,9 @@ class Board:
         for y in range(self.h):
             for x in range(self.w):
                 if (y - x) % 2 == 0:
-                    fill = "#E3C16F"
-                else:
                     fill = "#B88B4A"
+                else:
+                    fill = "#E3C16F"
 
                 self.canvas.create_rectangle(
                     x * self.cellSize,
@@ -376,11 +366,14 @@ class Board:
                     self.player = "white"
 
                 if self.player == "black":
-                    ((s_x, s_y), (e_x, e_y), score) = self.bot.play("black")
+                    if self.playWithBot:
+                        start = time()
+                        ((s_x, s_y), (e_x, e_y)) = self.bot.play("black")
+                        print(f"Bot took {time() - start} seconds to play")
 
-                    self.grid[e_y][e_x] = self.grid[s_y][s_x]
-                    self.grid[s_y][s_x] = None
-                    self.player = "white"
+                        self.grid[e_y][e_x] = self.grid[s_y][s_x]
+                        self.grid[s_y][s_x] = None
+                        self.player = "white"
 
                 # After a movement has been made, check if any of the king are under check/checkmate
                 loser = self.verify_for_checkmate()
@@ -433,6 +426,23 @@ class Board:
         """
         Reset the board to the initial state
         """
+
+        # Reset all the variables to default
+
+        self.grid = [[None for _ in range(self.w)] for _ in range(self.h)]
+        self.hoverPosition = None
+
+        self.currentMousePosition = None
+        self.draggedPiece = None
+        self.draggedPosition = None
+
+        self.last_x = -1
+        self.last_y = -1
+
+        self.player = "white"
+
+        # Reset the position of all the pieces
+
         for x in range(self.w):
             self.grid[1][x] = Pawn("black")
             self.grid[self.h - 2][x] = Pawn("white")
