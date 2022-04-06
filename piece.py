@@ -230,9 +230,6 @@ class Knight(Piece):
 
 
 class Rook(Piece):
-    def __init__(self, color):
-        super().__init__(color)
-
     def get_score(self, x, y):
         return (
             50 + rookEvalWhite[y][x] if self.color == "white" else rookEvalBlack[y][x]
@@ -251,9 +248,6 @@ class Rook(Piece):
 
 
 class Bishop(Piece):
-    def __init__(self, color):
-        super().__init__(color)
-
     def get_score(self, x, y):
         return (
             30 + bishopEvalWhite[y][x]
@@ -272,9 +266,6 @@ class Bishop(Piece):
 
 
 class Queen(Piece):
-    def __init__(self, color):
-        super().__init__(color)
-
     def get_score(self, x, y):
         return 90 + evalQueen[y][x]
 
@@ -293,9 +284,6 @@ class Queen(Piece):
 
 
 class King(Piece):
-    def __init__(self, color):
-        super().__init__(color)
-
     def get_score(self, x, y):
         return (
             900 + kingEvalWhite[y][x] if self.color == "white" else kingEvalBlack[y][x]
