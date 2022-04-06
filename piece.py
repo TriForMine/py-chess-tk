@@ -10,7 +10,8 @@ class Piece:
     def __init__(self, color: str):
         self.color = color
 
-    def get_score(self, x, y):
+    @staticmethod
+    def get_score(x, y):
         raise Exception("get_score() method need to be overwritten")
 
     @staticmethod
