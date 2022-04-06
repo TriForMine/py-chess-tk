@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 WIDTH = 800
 HEIGHT = WIDTH
 
