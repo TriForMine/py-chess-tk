@@ -13,10 +13,12 @@ class Piece:
     def name():
         raise Exception("Name method need to be overwritten")
 
-    def possible_moves(self, board, x: int, y: int, capture: bool):
+    @staticmethod
+    def possible_moves(board, x: int, y: int, capture: bool):
         raise Exception("The piece doesn't implement any movements")
 
-    def clone(self):
+    @staticmethod
+    def clone():
         raise Exception("The piece doesn't implement clone()")
 
     def get_moves(self, board, x: int, y: int):
@@ -26,7 +28,8 @@ class Piece:
     def get_capture_moves(self, board, x: int, y: int):
         return self.possible_moves(board, x, y, True)
 
-    def horizontal(self, board, x: int, y: int, distance: int, capture: bool):
+    @staticmethod
+    def horizontal(board, x: int, y: int, distance: int, capture: bool):
         """
         Check for horizontal movement
         """
