@@ -1,7 +1,17 @@
 from tkinter import PhotoImage
 
-from consts import pawnEvalBlack, pawnEvalWhite, knightEval, rookEvalWhite, rookEvalBlack, bishopEvalWhite, \
-    bishopEvalBlack, evalQueen, kingEvalBlack, kingEvalWhite
+from consts import (
+    pawnEvalBlack,
+    pawnEvalWhite,
+    knightEval,
+    rookEvalWhite,
+    rookEvalBlack,
+    bishopEvalWhite,
+    bishopEvalBlack,
+    evalQueen,
+    kingEvalBlack,
+    kingEvalWhite,
+)
 
 photo = {}
 
@@ -165,7 +175,9 @@ class Piece:
 
 class Pawn(Piece):
     def get_score(self, x, y):
-        return 10 + pawnEvalWhite[y][x] if self.color == "white" else pawnEvalBlack[y][x]
+        return (
+            10 + pawnEvalWhite[y][x] if self.color == "white" else pawnEvalBlack[y][x]
+        )
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         if self.color == "white" and y == 6 or self.color == "black" and y == 1:
@@ -222,7 +234,9 @@ class Rook(Piece):
         super().__init__(color)
 
     def get_score(self, x, y):
-        return 50 + rookEvalWhite[y][x] if self.color == "white" else rookEvalBlack[y][x]
+        return (
+            50 + rookEvalWhite[y][x] if self.color == "white" else rookEvalBlack[y][x]
+        )
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         return self.horizontal(board, x, y, 8, capture) + self.vertical(
@@ -241,7 +255,11 @@ class Bishop(Piece):
         super().__init__(color)
 
     def get_score(self, x, y):
-        return 30 + bishopEvalWhite[y][x] if self.color == "white" else bishopEvalBlack[y][x]
+        return (
+            30 + bishopEvalWhite[y][x]
+            if self.color == "white"
+            else bishopEvalBlack[y][x]
+        )
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         return self.diagonal(board, x, y, 8, True, capture)
@@ -279,7 +297,9 @@ class King(Piece):
         super().__init__(color)
 
     def get_score(self, x, y):
-        return 900 + kingEvalWhite[y][x] if self.color == "white" else kingEvalBlack[y][x]
+        return (
+            900 + kingEvalWhite[y][x] if self.color == "white" else kingEvalBlack[y][x]
+        )
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         return (
