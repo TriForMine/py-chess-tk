@@ -359,18 +359,17 @@ class Board:
                 # After a movement has been made, check if any of the king are under check/checkmate
                 loser = self.verify_for_checkmate()
 
-                if self.player == "black":
-                    if self.playWithBot:
-                        start = time()
-                        ((s_x, s_y), (e_x, e_y)) = self.bot.play("black")
-                        print(f"Bot took {time() - start} seconds to play")
+                if self.player == "black" and self.playWithBot:
+                    start = time()
+                    ((s_x, s_y), (e_x, e_y)) = self.bot.play("black")
+                    print(f"Bot took {time() - start} seconds to play")
 
-                        self.grid[e_y][e_x] = self.grid[s_y][s_x]
-                        self.grid[s_y][s_x] = None
-                        self.player = "white"
+                    self.grid[e_y][e_x] = self.grid[s_y][s_x]
+                    self.grid[s_y][s_x] = None
+                    self.player = "white"
 
-                        # After a movement has been made, check if any of the king are under check/checkmate
-                        loser = self.verify_for_checkmate()
+                    # After a movement has been made, check if any of the king are under check/checkmate
+                    loser = self.verify_for_checkmate()
 
                 if loser:
                     messagebox.showinfo(
