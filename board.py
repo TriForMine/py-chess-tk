@@ -127,11 +127,11 @@ class Board:
         king = self.get_king_piece(color, grid)
         if not king:
             return True
-        (king_pos, king_piece) = king
+        (king_pos, _) = king
         moves = self.get_color_all_moves(enemy_color(color), grid)
 
         # And check if the king position is included in the movements of the enemy.
-        for (p1, p2) in moves:
+        for (_, p2) in moves:
             if king_pos == p2:
                 return True
 
