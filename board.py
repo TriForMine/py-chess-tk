@@ -110,11 +110,12 @@ class Board:
                 if piece and piece.color == color and type(piece) is King:
                     return (x, y), piece
 
-        self.reset_board()
+        self.render()
         messagebox.showwarning(
             "Warning",
             f"The {color} king was captured.\n{enemy_color(color)} won.\n\nThe game has been reset.",
         )
+        self.reset_board()
 
     def is_color_in_check(self, color: str, grid=None):
         """

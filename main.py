@@ -1,9 +1,6 @@
 from tkinter import Tk, Frame, Canvas, BOTH, Event, messagebox, Menu
-
 from board import Board
-
-WIDTH = 800
-HEIGHT = WIDTH
+from consts import WIDTH, HEIGHT
 
 
 class MainGUI(Frame):
@@ -28,16 +25,16 @@ class MainGUI(Frame):
 
         levels = Menu(menubar, tearoff=0)
         levels.add_command(
-            label="Level 2 (Quick)", command=lambda: self.select_bot_difficulty(2)
+            label="Level 2 (0.01s)", command=lambda: self.select_bot_difficulty(2)
         )
         levels.add_command(
-            label="Level 3 (Fast)", command=lambda: self.select_bot_difficulty(3)
+            label="Level 3 (0.1s)", command=lambda: self.select_bot_difficulty(3)
         )
         levels.add_command(
-            label="Level 4 (Slow)", command=lambda: self.select_bot_difficulty(4)
+            label="Level 4 (1s)", command=lambda: self.select_bot_difficulty(4)
         )
         levels.add_command(
-            label="Level 5 (Turtle)", command=lambda: self.select_bot_difficulty(5)
+            label="Level 5 (60s)", command=lambda: self.select_bot_difficulty(5)
         )
         settings_menu.add_cascade(label="Bot Difficulty", menu=levels)
 

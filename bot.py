@@ -1,8 +1,6 @@
 from math import inf
 from utils import calculate_total_score
 
-count = 0
-
 
 class Bot:
     def __init__(self, board, depth=3):

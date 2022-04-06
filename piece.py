@@ -1,5 +1,8 @@
 from tkinter import PhotoImage
 
+from consts import pawnEvalBlack, pawnEvalWhite, knightEval, rookEvalWhite, rookEvalBlack, bishopEvalWhite, \
+    bishopEvalBlack, evalQueen, kingEvalBlack, kingEvalWhite
+
 photo = {}
 
 
@@ -7,7 +10,8 @@ class Piece:
     def __init__(self, color: str):
         self.color = color
 
-        self.score = 0
+    def get_score(self, x, y):
+        raise Exception("get_score() method need to be overwritten")
 
     @staticmethod
     def name():
@@ -159,9 +163,8 @@ class Piece:
 
 
 class Pawn(Piece):
-    def __init__(self, color):
-        super().__init__(color)
-        self.score = 10
+    def get_score(self, x, y):
+        return 10 + pawnEvalWhite[y][x] if self.color == "white" else pawnEvalBlack[y][x]
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         if self.color == "white" and y == 6 or self.color == "black" and y == 1:
@@ -185,7 +188,9 @@ class Pawn(Piece):
 class Knight(Piece):
     def __init__(self, color):
         super().__init__(color)
-        self.score = 30
+
+    def get_score(self, x, y):
+        return 30 + knightEval[y][x]
 
     # Knight has custom movements, it doesn't uses horizontal/vertical/diagonal
     def possible_moves(self, board, x: int, y: int, capture: bool):
@@ -214,7 +219,9 @@ class Knight(Piece):
 class Rook(Piece):
     def __init__(self, color):
         super().__init__(color)
-        self.score = 50
+
+    def get_score(self, x, y):
+        return 50 + rookEvalWhite[y][x] if self.color == "white" else rookEvalBlack[y][x]
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         return self.horizontal(board, x, y, 8, capture) + self.vertical(
@@ -231,7 +238,9 @@ class Rook(Piece):
 class Bishop(Piece):
     def __init__(self, color):
         super().__init__(color)
-        self.score = 30
+
+    def get_score(self, x, y):
+        return 30 + bishopEvalWhite[y][x] if self.color == "white" else bishopEvalBlack[y][x]
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         return self.diagonal(board, x, y, 8, True, capture)
@@ -246,7 +255,9 @@ class Bishop(Piece):
 class Queen(Piece):
     def __init__(self, color):
         super().__init__(color)
-        self.score = 90
+
+    def get_score(self, x, y):
+        return 90 + evalQueen[y][x]
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         return (
@@ -265,7 +276,9 @@ class Queen(Piece):
 class King(Piece):
     def __init__(self, color):
         super().__init__(color)
-        self.score = 900
+
+    def get_score(self, x, y):
+        return 900 + kingEvalWhite[y][x] if self.color == "white" else kingEvalBlack[y][x]
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
         return (
