@@ -83,25 +83,18 @@ class Board:
                     capture_moves = piece.get_capture_moves(self, x, y)
                     moves = piece.get_moves(self, x, y)
 
-                    # If moves and captures moves are same, only loop once
-                    if moves == capture_moves:
-                        for pos in moves:
-                            (pos_x, pos_y) = pos
-                            if self.is_position_in_bound(pos_x, pos_y):
-                                res.add(((x, y), pos))
-                    else:
-                        for pos in capture_moves:
-                            (pos_x, pos_y) = pos
-                            target = self.get_piece_at_position(pos_x, pos_y)
-                            if target and target.color != piece.color:
-                                res.add(((x, y), pos))
+                    for pos in capture_moves:
+                        (pos_x, pos_y) = pos
+                        target = self.get_piece_at_position(pos_x, pos_y)
+                        if target and target.color != piece.color:
+                            res.add(((x, y), pos))
 
-                        for pos in moves:
-                            (pos_x, pos_y) = pos
-                            if self.is_position_in_bound(
-                                pos_x, pos_y
-                            ) and not self.check_piece_at_position(pos_x, pos_y):
-                                res.add(((x, y), pos))
+                    for pos in moves:
+                        (pos_x, pos_y) = pos
+                        if self.is_position_in_bound(
+                            pos_x, pos_y
+                        ) and not self.check_piece_at_position(pos_x, pos_y):
+                            res.add(((x, y), pos))
 
         return res
 
@@ -351,7 +344,8 @@ class Board:
                 and not destination_piece
             ) or (
                 (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
-                and destination_piece and destination_piece.color != self.draggedPiece.color
+                and destination_piece
+                and destination_piece.color != self.draggedPiece.color
             ):
                 # Move the piece to the new position
                 self.grid[y][x] = self.draggedPiece
