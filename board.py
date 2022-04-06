@@ -150,10 +150,10 @@ class Board:
 
     def verify_counter_check(self, color):
         # Test all the possible movements, to verify if the check goes away
-        for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_all_moves(color):
-            if not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color):
-                return True
-        return False
+        return any(
+            not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color)
+            for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_all_moves(color)
+        )
 
     def verify_for_checkmate(self):
         # If the white player is in check, verify if the player has a way to avoid the check.
