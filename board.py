@@ -417,7 +417,7 @@ class Board:
 
                     messagebox.showerror(
                         "Illegal Move",
-                        f"You're king is in check!",
+                        "You're king is in check!",
                     )
             else:
                 # Revert the movement
