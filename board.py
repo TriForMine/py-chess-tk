@@ -36,11 +36,8 @@ class Board:
         # Store an instance of the bot class
         # If you make the bot using more than 3 in depth, it will start to be slow!
 
-        # Choose between 3-5
-        # 3 takes around 0.08 seconds
-        # 4 takes around 1/2 seconds
-        # 5 takes around 5/10 seconds per turn
-        self.bot = Bot(self, 4)
+        # Choose between 1-5
+        self.bot = Bot(self, 3)
 
         # Store the choice of user, playing against a bot or another player
         self.playWithBot = True
@@ -98,7 +95,7 @@ class Board:
         return res
 
     def is_capture_move(self, move):
-        (s, e) = move
+        (_, e) = move
         return type(self.get_piece_at_position(e[0], e[1])) is King
 
     def filter_illegal_moves(
@@ -151,16 +148,11 @@ class Board:
         if not grid:
             grid = self.grid
 
-        # Get the king, and all the enemy movements.
-        king = self.get_king_piece(color, grid)
-        if not king:
-            return True
-        (king_pos, _) = king
         moves = self.get_color_all_moves(enemy_color(color), grid)
 
         # And check if the king position is included in the movements of the enemy.
-        for (_, p2) in moves:
-            if king_pos == p2:
+        for move in moves:
+            if self.is_capture_move(move):
                 return True
 
         return False
