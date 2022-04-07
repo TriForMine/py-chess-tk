@@ -48,4 +48,4 @@ This was the requirements for that project.
 The project uses the following [images](https://commons.m.wikimedia.org/wiki/Category:SVG_chess_pieces) which are under Creative Commons license.
 
 ## Thanks
-- [CorentinGS](https://github.com/CorentinGS) for suggesting some ideas and improvements to the project.
+- [CorentinGS](https://github.com/CorentinGS/Chess-Tkinter/) for suggesting some ideas and improvements to the project.
