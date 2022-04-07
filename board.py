@@ -181,21 +181,25 @@ class Board:
     def verify_for_checkmate(self):
         # If the white player is in check, verify if the player has a way to avoid the check.
         # If it's the black player turn, the white player has lost.
-        if self.is_color_in_check("white"):
-            if self.player == "white":
-                if self.verify_counter_check("white"):
-                    return False
-                else:
-                    return "white"
+        if (
+            self.is_color_in_check("white")
+            and self.player == "white"
+        ):
+            if self.verify_counter_check("white"):
+                return False
+            else:
+                return "white"
 
         # If the black player is in check, verify if the player has a way to avoid the check.
         # If it's the white player turn, the black player has lost.
-        if self.is_color_in_check("black"):
-            if self.player == "black":
-                if self.verify_counter_check("black"):
-                    return False
-                else:
-                    return "black"
+        if (
+            self.is_color_in_check("black")
+            and self.player == "black"
+        ):
+            if self.verify_counter_check("black"):
+                return False
+            else:
+                return "black"
 
         return None
 
