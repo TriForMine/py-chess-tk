@@ -54,7 +54,7 @@ class Piece:
         for offset_x in range(1, distance + 1):
             (pos_x, pos_y) = (x + offset_x, y)
             if not board.is_position_in_bound(
-                    pos_x, pos_y
+                pos_x, pos_y
             ) or board.check_piece_at_position(pos_x, pos_y):
                 if capture:
                     res.add((pos_x, pos_y))
@@ -65,7 +65,7 @@ class Piece:
         for offset_x in range(1, distance + 1):
             (pos_x, pos_y) = (x - offset_x, y)
             if not board.is_position_in_bound(
-                    pos_x, pos_y
+                pos_x, pos_y
             ) or board.check_piece_at_position(pos_x, pos_y):
                 if capture:
                     res.add((pos_x, pos_y))
@@ -75,7 +75,7 @@ class Piece:
         return res
 
     def vertical(
-            self, board, x: int, y: int, distance: int, both_direction: bool, capture: bool
+        self, board, x: int, y: int, distance: int, both_direction: bool, capture: bool
     ):
         """
         Check for vertical movement
@@ -87,7 +87,7 @@ class Piece:
             for offset_y in range(1, distance + 1):
                 (pos_x, pos_y) = (x, y + offset_y)
                 if not board.is_position_in_bound(
-                        pos_x, pos_y
+                    pos_x, pos_y
                 ) or board.check_piece_at_position(pos_x, pos_y):
                     if capture:
                         res.add((pos_x, pos_y))
@@ -99,7 +99,7 @@ class Piece:
             for offset_y in range(1, distance + 1):
                 (pos_x, pos_y) = (x, y - offset_y)
                 if not board.is_position_in_bound(
-                        pos_x, pos_y
+                    pos_x, pos_y
                 ) or board.check_piece_at_position(pos_x, pos_y):
                     if capture:
                         res.add((pos_x, pos_y))
@@ -109,7 +109,7 @@ class Piece:
         return res
 
     def diagonal(
-            self, board, x: int, y: int, distance: int, both_direction: bool, capture: bool
+        self, board, x: int, y: int, distance: int, both_direction: bool, capture: bool
     ):
         """
         Check for diagonal movement
@@ -125,7 +125,7 @@ class Piece:
                         (pos_x, pos_y) = (x - offset, y + offset)
 
                     if not board.is_position_in_bound(
-                            pos_x, pos_y
+                        pos_x, pos_y
                     ) or board.check_piece_at_position(pos_x, pos_y):
                         if capture:
                             res.add((pos_x, pos_y))
@@ -141,7 +141,7 @@ class Piece:
                         (pos_x, pos_y) = (x + offset, y - offset)
 
                     if not board.is_position_in_bound(
-                            pos_x, pos_y
+                        pos_x, pos_y
                     ) or board.check_piece_at_position(pos_x, pos_y):
                         if capture:
                             res.add((pos_x, pos_y))
@@ -236,9 +236,10 @@ class Rook(Piece):
         )
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
-        return set.union(self.horizontal(board, x, y, 8, capture), self.vertical(
-            board, x, y, 8, True, capture
-        ))
+        return set.union(
+            self.horizontal(board, x, y, 8, capture),
+            self.vertical(board, x, y, 8, True, capture),
+        )
 
     def image_path(self):
         return f"./images/rook_{self.color}.png"
@@ -270,10 +271,10 @@ class Queen(Piece):
         return 90 + evalQueen[y][x]
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
-        return (
-            set.union(self.horizontal(board, x, y, 8, capture),
-                      self.vertical(board, x, y, 8, True, capture),
-                      self.diagonal(board, x, y, 8, True, capture))
+        return set.union(
+            self.horizontal(board, x, y, 8, capture),
+            self.vertical(board, x, y, 8, True, capture),
+            self.diagonal(board, x, y, 8, True, capture),
         )
 
     def image_path(self):
@@ -290,10 +291,10 @@ class King(Piece):
         )
 
     def possible_moves(self, board, x: int, y: int, capture: bool):
-        return (
-            set.union(self.horizontal(board, x, y, 1, capture),
-                      self.vertical(board, x, y, 1, True, capture),
-                      self.diagonal(board, x, y, 1, True, capture))
+        return set.union(
+            self.horizontal(board, x, y, 1, capture),
+            self.vertical(board, x, y, 1, True, capture),
+            self.diagonal(board, x, y, 1, True, capture),
         )
 
     def image_path(self):
