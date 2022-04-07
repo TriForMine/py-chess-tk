@@ -36,6 +36,8 @@ class Piece:
     def clone():
         raise Exception("The piece doesn't implement clone()")
 
+    __copy__ = clone
+
     def get_moves(self, board, x: int, y: int) -> list[tuple[int, int]]:
         return self.possible_moves(board, x, y, False)
 

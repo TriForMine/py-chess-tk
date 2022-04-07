@@ -1,6 +1,6 @@
 from time import time
 from tkinter import Event, Canvas, messagebox
-
+from collections import defaultdict
 from bot import Bot
 from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
 from utils import enemy_color
@@ -10,7 +10,7 @@ class Board:
     w: int
     h: int
     cellSize: int
-    grid: list[list[Piece | None]]
+    grid: defaultdict[tuple[int, int], None | Piece]
     canvas: Canvas
     hoverPosition: tuple[int, int] | None
     currentMousePosition: tuple[int, int] | None
@@ -23,8 +23,8 @@ class Board:
         self.w = width
         self.h = height
         self.cellSize = cell_size
-        # Generate the grid matrix to empty by default
-        self.grid = [[None for _ in range(width)] for _ in range(height)]
+        # Generate the grid using a defaultdict structure, which is a dict, that default non-existing value to None.
+        self.grid = defaultdict(lambda: None)
         self.canvas = canvas
 
         # Store the currently hovered piece
@@ -55,22 +55,21 @@ class Board:
 
         self.reset_board()
 
-    def clone_grid(self, grid=None):
+    def clone_grid(self, grid=None) -> defaultdict[tuple[int, int], None | Piece]:
         """
         Clone a grid into a new one
         """
         if not grid:
             grid = self.grid
-        new_grid = [[None for _ in range(self.w)] for _ in range(self.h)]
+        new_grid = defaultdict(lambda: None)
 
-        for y in range(self.h):
-            for x in range(self.w):
-                if grid[y][x]:
-                    new_grid[y][x] = grid[y][x].clone()
+        for ((x, y), val) in grid.items():
+            if val:
+                new_grid[x, y] = val.clone()
         return new_grid
 
     def get_color_all_moves(
-        self, color: str, grid=None
+            self, color: str, grid=None
     ) -> set[tuple[tuple[int, int], tuple[int, int]]]:
         if grid is None:
             grid = self.grid
@@ -78,30 +77,32 @@ class Board:
         # Use set since you don't want to check multiple moves more than once.
         res = set()
 
-        for y in range(self.h):
-            for x in range(self.w):
-                piece = self.get_piece_at_position(x, y, grid)
-                if piece and piece.color == color:
-                    capture_moves = piece.get_capture_moves(self, x, y)
-                    moves = piece.get_moves(self, x, y)
+        for ((x, y), piece) in grid.copy().items():
+            if piece and piece.color == color:
+                capture_moves = piece.get_capture_moves(self, x, y)
+                moves = piece.get_moves(self, x, y)
 
-                    for pos in capture_moves:
-                        (pos_x, pos_y) = pos
-                        target = self.get_piece_at_position(pos_x, pos_y)
-                        if target and target.color != piece.color:
-                            res.add(((x, y), pos))
+                for pos in capture_moves:
+                    (pos_x, pos_y) = pos
+                    target = self.get_piece_at_position(pos_x, pos_y)
+                    if target and target.color != piece.color:
+                        res.add(((x, y), pos))
 
-                    for pos in moves:
-                        (pos_x, pos_y) = pos
-                        if self.is_position_in_bound(
+                for pos in moves:
+                    (pos_x, pos_y) = pos
+                    if self.is_position_in_bound(
                             pos_x, pos_y
-                        ) and not self.check_piece_at_position(pos_x, pos_y):
-                            res.add(((x, y), pos))
+                    ) and not self.check_piece_at_position(pos_x, pos_y):
+                        res.add(((x, y), pos))
 
         return res
 
+    def is_capture_move(self, move):
+        (s, e) = move
+        return type(self.get_piece_at_position(e[0], e[1])) is King
+
     def filter_illegal_moves(
-        self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str
+            self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str
     ):
         """
         Remove all illegal moves from the given moves.
@@ -131,11 +132,9 @@ class Board:
             )
             return (x, y), self.draggedPiece
 
-        for y in range(self.h):
-            for x in range(self.w):
-                piece = self.get_piece_at_position(x, y, grid)
-                if piece and piece.color == color and type(piece) is King:
-                    return (x, y), piece
+        for ((x, y), piece) in self.grid.items():
+            if piece and piece.color == color and type(piece) is King:
+                return (x, y), piece
 
         if not self.draggedPiece:
             self.render()
@@ -173,8 +172,8 @@ class Board:
         tmp = self.clone_grid()
         (p1_x, p1_y) = p1
         (p2_x, p2_y) = p2
-        tmp[p2_y][p2_x] = tmp[p1_y][p1_x]
-        tmp[p1_y][p1_x] = None
+        tmp[p2_x, p2_y] = tmp[p1_x, p1_y]
+        tmp.pop((p1_x, p1_y))
         return self.is_color_in_check(player, tmp)
 
     def verify_counter_check(self, color: str):
@@ -276,14 +275,13 @@ class Board:
                 )
 
         # Draw all the pieces
-        for y in range(self.h):
-            for x in range(self.w):
-                if self.grid[y][x] is not None:
-                    self.canvas.create_image(
-                        x * self.cellSize + self.cellSize // 2,
-                        y * self.cellSize + self.cellSize // 2,
-                        image=self.grid[y][x].image(self.cellSize),
-                    )
+        for ((x, y), piece) in self.grid.items():
+            if self.grid[x, y] is not None:
+                self.canvas.create_image(
+                    x * self.cellSize + self.cellSize // 2,
+                    y * self.cellSize + self.cellSize // 2,
+                    image=self.grid[x, y].image(self.cellSize),
+                )
 
         # Show the movements of the currently moved piece
         if self.draggedPiece:
@@ -320,7 +318,7 @@ class Board:
             grid = self.grid
         if not self.is_position_in_bound(x, y):
             return None
-        return grid[y][x]
+        return grid[x, y]
 
     def check_piece_at_position(self, x: int, y: int, grid=None) -> bool:
         """
@@ -330,7 +328,7 @@ class Board:
             grid = self.grid
         if not self.is_position_in_bound(x, y):
             return False
-        return grid[y][x] is not None
+        return grid[x, y] is not None
 
     def handle_drag_start(self, button_press: Event):
         """
@@ -346,7 +344,7 @@ class Board:
         self.draggedPosition = (x, y)
 
         # Remove the piece from the board, so it can be drawn on the mouse position
-        self.grid[y][x] = None
+        self.grid.pop((x, y))
 
         # Render the board again to hide the dragged piece from the grid
         self.render()
@@ -365,16 +363,16 @@ class Board:
             destination_piece = self.get_piece_at_position(x, y)
             # Check if the released position is a valid movement.
             if (
-                (x, y) in self.draggedPiece.get_moves(self, pos_x, pos_y)
-                and not destination_piece
+                    (x, y) in self.draggedPiece.get_moves(self, pos_x, pos_y)
+                    and not destination_piece
             ) or (
-                (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
-                and destination_piece
-                and destination_piece.color != self.draggedPiece.color
+                    (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
+                    and destination_piece
+                    and destination_piece.color != self.draggedPiece.color
             ):
                 if not self.emulate_check((pos_x, pos_y), (x, y), self.player):
                     # Move the piece to the new position
-                    self.grid[y][x] = self.draggedPiece
+                    self.grid[x, y] = self.draggedPiece
                     self.draggedPiece = None
                     self.draggedPosition = None
                     if self.player == "white":
@@ -394,8 +392,8 @@ class Board:
                         ((s_x, s_y), (e_x, e_y)) = self.bot.play("black")
                         print(f"Bot took {time() - start} seconds to play")
 
-                        self.grid[e_y][e_x] = self.grid[s_y][s_x]
-                        self.grid[s_y][s_x] = None
+                        self.grid[e_x, e_y] = self.grid[s_x, s_y]
+                        self.grid.pop((s_x, s_y))
                         self.player = "white"
 
                         # After a movement has been made, check if any of the king are under check/checkmate
@@ -414,7 +412,7 @@ class Board:
                         self.reset_board()
                         return
                 else:
-                    self.grid[pos_y][pos_x] = self.draggedPiece.clone()
+                    self.grid[pos_x, pos_y] = self.draggedPiece.clone()
                     self.draggedPiece = None
                     self.draggedPosition = None
 
@@ -427,7 +425,7 @@ class Board:
                     )
             else:
                 # Revert the movement
-                self.grid[pos_y][pos_x] = self.draggedPiece
+                self.grid[pos_x, pos_y] = self.draggedPiece
                 self.draggedPiece = None
                 self.draggedPosition = None
 
@@ -472,7 +470,7 @@ class Board:
 
         # Reset all the variables to default
 
-        self.grid = [[None for _ in range(self.w)] for _ in range(self.h)]
+        self.grid.clear()
         self.hoverPosition = None
 
         self.currentMousePosition = None
@@ -487,27 +485,27 @@ class Board:
         # Reset the position of all the pieces
 
         for x in range(self.w):
-            self.grid[1][x] = Pawn("black")
-            self.grid[self.h - 2][x] = Pawn("white")
+            self.grid[x, 1] = Pawn("black")
+            self.grid[x, self.h - 2] = Pawn("white")
 
             if x in (0, self.w - 1):
-                self.grid[0][x] = Rook("black")
-                self.grid[self.h - 1][x] = Rook("white")
+                self.grid[x, 0] = Rook("black")
+                self.grid[x, self.h - 1] = Rook("white")
 
             elif x in (1, self.w - 2):
-                self.grid[0][x] = Knight("black")
-                self.grid[self.h - 1][x] = Knight("white")
+                self.grid[x, 0] = Knight("black")
+                self.grid[x, self.h - 1] = Knight("white")
 
             elif x in (2, self.w - 3):
-                self.grid[0][x] = Bishop("black")
-                self.grid[self.h - 1][x] = Bishop("white")
+                self.grid[x, 0] = Bishop("black")
+                self.grid[x, self.h - 1] = Bishop("white")
 
             elif x == 3:
-                self.grid[0][x] = Queen("black")
-                self.grid[self.h - 1][x] = Queen("white")
+                self.grid[x, 0] = Queen("black")
+                self.grid[x, self.h - 1] = Queen("white")
 
             elif x == 4:
-                self.grid[0][x] = King("black")
-                self.grid[self.h - 1][x] = King("white")
+                self.grid[x, 0] = King("black")
+                self.grid[x, self.h - 1] = King("white")
 
         self.render()

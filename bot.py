@@ -1,4 +1,7 @@
+from collections import defaultdict
 from math import inf
+from hashlib import md5
+from piece import Piece
 from utils import calculate_total_score
 
 
@@ -8,7 +11,7 @@ class Bot:
         self.depth = depth
 
     def play(self, color="black"):
-        return self.get_minimax_move(self.depth, color)
+        return self.get_negamax_move(self.depth, color)
 
     def calculate_movement_score(self, p1, p2, grid=None):
         # If no grid is provided, use the board grid as default
@@ -24,76 +27,90 @@ class Bot:
 
         return tmp, calculate_total_score(tmp)
 
-    def minimax(self, depth, grid, is_maximizing, alpha, beta):
+    def quiescence_search(self, grid, alpha, beta):
+        """
+        Quiescence search is required to avoid move that are dangerous.
+        As explained here: https://www.chessprogramming.org/Quiescence_Search
+        """
+        last_score = calculate_total_score(grid)
+
+        if last_score >= beta:
+            return beta
+        if alpha < last_score:
+            alpha = last_score
+
+        new_moves = self.board.filter_illegal_moves(
+            self.board.get_color_all_moves("black", grid), "black"
+        )
+
+        for move in new_moves:
+            if self.board.is_capture_move(move):
+                tmp = self.board.clone_grid(grid)
+                (s, e) = move
+                # Move the piece from s to e
+                tmp[e], tmp[s] = tmp[e], None
+
+                score = -self.quiescence_search(grid, -beta, -alpha)
+
+                if score >= beta:
+                    return beta
+                if score > alpha:
+                    alpha = score
+
+        return alpha
+
+    def negamax(self, depth, grid: defaultdict[tuple[int, int], None | Piece], is_maximizing, alpha, beta):
         if depth == 0:
-            return -calculate_total_score(grid)
+            return self.quiescence_search(grid, alpha, beta)
 
         # Get all the moves possible on the new grid.
         new_moves = self.board.filter_illegal_moves(
             self.board.get_color_all_moves("black", grid), "black"
         )
 
-        # If the player is the bot, try to get the best score.
-        if is_maximizing:
-            best_move = -inf
-            for (s, e) in new_moves:
-                # Clone the grid so movement can be done without impacting the game.
-                tmp = self.board.clone_grid(grid)
+        best_score = -inf
+        for (s, e) in new_moves:
+            # Clone the grid so movement can be done without impacting the game.
+            tmp = self.board.clone_grid(grid)
 
-                (s_x, s_y) = s
-                (e_x, e_y) = e
-                # Move the piece from s to e
-                tmp[e_y][e_x], tmp[s_y][s_x] = tmp[s_y][s_x], None
+            # Move the piece from s to e
+            tmp[e], tmp[s] = tmp[e], None
 
-                # Get the best score you can get from that tree branch
-                best_move = max(
-                    best_move,
-                    self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta),
-                )
+            score = -self.negamax(depth - 1, tmp, not is_maximizing, -beta, -alpha)
 
-                alpha = max(alpha, best_move)
+            if score >= beta:
+                return score
+            if score > best_score:
+                best_score = score
+            if score > alpha:
+                alpha = score
 
-                if beta <= alpha:
-                    return best_move
+        return best_score
 
-            return best_move
-        # If the player is not the bot, try to choose the best score for him.
-        else:
-            best_move = inf
-            for (s, e) in new_moves:
-                tmp = self.board.clone_grid(grid)
-
-                (s_x, s_y) = s
-                (e_x, e_y) = e
-                # Move the piece from s to e
-                tmp[e_y][e_x], tmp[s_y][s_x] = tmp[s_y][s_x], None
-
-                # Get the best score you can get from that tree branch
-                best_move = min(
-                    best_move,
-                    self.minimax(depth - 1, tmp, not is_maximizing, alpha, beta),
-                )
-
-                beta = min(beta, best_move)
-
-                if beta <= alpha:
-                    return best_move
-
-            return best_move
-
-    def get_minimax_move(self, depth=3, color="black"):
-        best_next_score = 9999
+    def get_negamax_move(self, depth=3, color="black"):
+        best_next_score = -inf
         best_next_node = None
+
+        alpha = -inf
+        beta = inf
 
         # Goes through all the children, and choose the next move that should be done.
         for (s, e) in self.board.filter_illegal_moves(
-            self.board.get_color_all_moves("black", self.board.grid), "black"
+                self.board.get_color_all_moves("black", self.board.grid), "black"
         ):
-            node_minimax = self.minimax(
-                depth - 1, self.board.grid, color == "white", -10000, 10000
+            tmp = self.board.clone_grid(self.board.grid)
+            # Move the piece from s to e
+            tmp[e], tmp[s] = tmp[s], None
+
+            node_minimax = self.negamax(
+                depth - 1, tmp, color == "black", -beta, -alpha
             )
-            if best_next_score >= node_minimax:
+
+            if best_next_score < node_minimax:
                 best_next_score = node_minimax
                 best_next_node = (s, e)
+
+            if node_minimax > alpha:
+                alpha = node_minimax
 
         return best_next_node
