@@ -60,9 +60,9 @@ class Board:
             grid = self.grid
         new_grid = defaultdict(lambda: None)
 
-        for ((x, y), val) in grid.items():
+        for (pos, val) in grid.items():
             if val:
-                new_grid[x, y] = val.clone()
+                new_grid[pos] = val.clone()
         return new_grid
 
     def get_color_all_moves(
@@ -74,7 +74,7 @@ class Board:
         # Use set since you don't want to check multiple moves more than once.
         res = set()
 
-        for ((x, y), piece) in grid.copy().items():
+        for (x, y), piece in grid.copy().items():
             if piece and piece.color == color:
                 capture_moves = piece.get_capture_moves(self, x, y)
                 moves = piece.get_moves(self, x, y)
@@ -111,8 +111,12 @@ class Board:
         else:
             new = set()
             for (p1, p2) in moves:
-                if is_under_check and not self.emulate_check(p1, p2, color):
-                    new.add((p1, p2))
+                if is_under_check:
+                    tmp = self.clone_grid()
+                    tmp[p2] = tmp[p1]
+                    tmp.pop(p1)
+                    if not self.is_color_in_check(color, tmp):
+                        new.add((p1, p2))
 
             return new
 
@@ -129,7 +133,7 @@ class Board:
             )
             return (x, y), self.draggedPiece
 
-        for ((x, y), piece) in self.grid.items():
+        for ((x, y), piece) in grid.items():
             if piece and piece.color == color and type(piece) is King:
                 return (x, y), piece
 
@@ -162,17 +166,18 @@ class Board:
         Simulate a movement, and verify if it provokes a check for the player.
         """
         tmp = self.clone_grid()
-        (p1_x, p1_y) = p1
-        (p2_x, p2_y) = p2
-        tmp[p2_x, p2_y] = tmp[p1_x, p1_y]
-        tmp.pop((p1_x, p1_y))
-        return self.is_color_in_check(player, tmp)
+        if tmp[p1]:
+            tmp[p2] = tmp[p1]
+            tmp.pop(p1)
+            return self.is_color_in_check(player, tmp)
+        else:
+            return False
 
     def verify_counter_check(self, color: str):
         # Test all the possible movements, to verify if the check goes away
         return any(
-            not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color)
-            for (p1_x, p1_y), (p2_x, p2_y) in self.filter_illegal_moves(
+            not self.emulate_check(p1, p2, color)
+            for p1, p2 in self.filter_illegal_moves(
                 self.get_color_all_moves(color), color
             )
         )
@@ -180,7 +185,7 @@ class Board:
     def verify_for_checkmate(self):
         # If the white player is in check, verify if the player has a way to avoid the check.
         # If it's the black player turn, the white player has lost.
-        if self.is_color_in_check("white") and self.player == "white":
+        if self.player == "white" and self.is_color_in_check("white"):
             if self.verify_counter_check("white"):
                 return False
             else:
@@ -188,7 +193,7 @@ class Board:
 
         # If the black player is in check, verify if the player has a way to avoid the check.
         # If it's the white player turn, the black player has lost.
-        if self.is_color_in_check("black") and self.player == "black":
+        if self.player == "black" and self.is_color_in_check("black"):
             if self.verify_counter_check("black"):
                 return False
             else:
@@ -364,7 +369,7 @@ class Board:
             ):
                 if not self.emulate_check((pos_x, pos_y), (x, y), self.player):
                     # Move the piece to the new position
-                    self.grid[x, y] = self.draggedPiece
+                    self.grid[x, y] = self.draggedPiece.clone()
                     self.draggedPiece = None
                     self.draggedPosition = None
                     if self.player == "white":
@@ -375,13 +380,9 @@ class Board:
                     # After a movement has been made, check if any of the king are under check/checkmate
                     loser = self.verify_for_checkmate()
 
-                    self.render()
-                    # Update the board instantly, so it doesn't freeze while the bot might be playing.
-                    self.canvas.winfo_toplevel().update()
-
                     if self.player == "black" and self.playWithBot:
                         start = time()
-                        bot_move = self.bot.play("black")
+                        bot_move = self.bot.play("black", self.grid)
                         print(f"Bot took {time() - start} seconds to play")
 
                         if bot_move:
@@ -422,7 +423,7 @@ class Board:
                     )
             else:
                 # Revert the movement
-                self.grid[pos_x, pos_y] = self.draggedPiece
+                self.grid[pos_x, pos_y] = self.draggedPiece.clone()
                 self.draggedPiece = None
                 self.draggedPosition = None
 

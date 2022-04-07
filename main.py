@@ -31,10 +31,10 @@ class MainGUI(Frame):
             label="Level 3 (0.05s)", command=lambda: self.select_bot_difficulty(3)
         )
         levels.add_command(
-            label="Level 4 (5s)", command=lambda: self.select_bot_difficulty(4)
+            label="Level 4 (0.5s)", command=lambda: self.select_bot_difficulty(4)
         )
         levels.add_command(
-            label="Level 5 (10s)", command=lambda: self.select_bot_difficulty(5)
+            label="Level 5 (2s)", command=lambda: self.select_bot_difficulty(5)
         )
         settings_menu.add_cascade(label="Bot Difficulty", menu=levels)
 
