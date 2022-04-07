@@ -108,7 +108,7 @@ class Bot:
         ):
             tmp = self.board.clone_grid(grid)
             # Move the piece from s to e
-            tmp[e]= tmp[s].clone()
+            tmp[e] = tmp[s].clone()
             tmp.pop(s)
 
             node_minimax = self.negamax(depth - 1, tmp, color == "white", -beta, -alpha)
