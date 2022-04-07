@@ -1,6 +1,5 @@
 from collections import defaultdict
 from math import inf
-from hashlib import md5
 from piece import Piece
 from utils import calculate_total_score
 
@@ -59,7 +58,14 @@ class Bot:
 
         return alpha
 
-    def negamax(self, depth, grid: defaultdict[tuple[int, int], None | Piece], is_maximizing, alpha, beta):
+    def negamax(
+        self,
+        depth,
+        grid: defaultdict[tuple[int, int], None | Piece],
+        is_maximizing,
+        alpha,
+        beta,
+    ):
         if depth == 0:
             return self.quiescence_search(grid, alpha, beta)
 
@@ -96,15 +102,13 @@ class Bot:
 
         # Goes through all the children, and choose the next move that should be done.
         for (s, e) in self.board.filter_illegal_moves(
-                self.board.get_color_all_moves("black", self.board.grid), "black"
+            self.board.get_color_all_moves("black", self.board.grid), "black"
         ):
             tmp = self.board.clone_grid(self.board.grid)
             # Move the piece from s to e
             tmp[e], tmp[s] = tmp[s], None
 
-            node_minimax = self.negamax(
-                depth - 1, tmp, color == "black", -beta, -alpha
-            )
+            node_minimax = self.negamax(depth - 1, tmp, color == "black", -beta, -alpha)
 
             if best_next_score < node_minimax:
                 best_next_score = node_minimax
