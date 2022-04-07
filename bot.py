@@ -29,7 +29,7 @@ class Bot:
             return -calculate_total_score(grid)
 
         # Get all the moves possible on the new grid.
-        new_moves = self.board.get_color_all_moves("black", grid)
+        new_moves = self.board.filter_illegal_moves(self.board.get_color_all_moves("black", grid), "black")
 
         # If the player is the bot, try to get the best score.
         if is_maximizing:
@@ -84,7 +84,7 @@ class Bot:
         best_next_node = None
 
         # Goes through all the children, and choose the next move that should be done.
-        for (s, e) in self.board.get_color_all_moves(color, self.board.grid):
+        for (s, e) in self.board.filter_illegal_moves(self.board.get_color_all_moves("black", self.board.grid), "black"):
             node_minimax = self.minimax(
                 depth - 1, self.board.grid, color == "white", -10000, 10000
             )

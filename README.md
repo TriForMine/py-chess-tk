@@ -46,3 +46,6 @@ This was the requirements for that project.
 
 ## Where does the images' comes from?
 The project uses the following [images](https://commons.m.wikimedia.org/wiki/Category:SVG_chess_pieces) which are under Creative Commons license.
+
+## Thanks
+- [CorentinGS](https://github.com/CorentinGS) for suggesting some ideas and improvements to the project.

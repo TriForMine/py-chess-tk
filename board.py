@@ -40,7 +40,7 @@ class Board:
         # 3 takes around 0.08 seconds
         # 4 takes around 1/2 seconds
         # 5 takes around 5/10 seconds per turn
-        self.bot = Bot(self, 3)
+        self.bot = Bot(self, 4)
 
         # Store the choice of user, playing against a bot or another player
         self.playWithBot = True
@@ -69,7 +69,7 @@ class Board:
                     new_grid[y][x] = grid[y][x].clone()
         return new_grid
 
-    def get_color_all_moves(self, color: str, grid=None):
+    def get_color_all_moves(self, color: str, grid=None) -> set[tuple[tuple[int, int], tuple[int, int]]]:
         if grid is None:
             grid = self.grid
 
@@ -92,11 +92,27 @@ class Board:
                     for pos in moves:
                         (pos_x, pos_y) = pos
                         if self.is_position_in_bound(
-                            pos_x, pos_y
+                                pos_x, pos_y
                         ) and not self.check_piece_at_position(pos_x, pos_y):
                             res.add(((x, y), pos))
 
         return res
+
+    def filter_illegal_moves(self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str):
+        """
+        Remove all illegal moves from the given moves.
+        """
+        is_under_check = self.is_color_in_check(color)
+
+        if not is_under_check:
+            return moves
+        else:
+            new = set()
+            for (p1, p2) in moves:
+                if is_under_check and not self.emulate_check(p1, p2, color):
+                    new.add((p1, p2))
+
+            return new
 
     def get_king_piece(self, color: str, grid=None):
         """
@@ -104,18 +120,24 @@ class Board:
         """
         if not grid:
             grid = self.grid
+
+        if type(self.draggedPiece) is King:
+            (x, y) = self.convert_world_to_local(self.hoverPosition[0], self.hoverPosition[1])
+            return (x, y), self.draggedPiece
+
         for y in range(self.h):
             for x in range(self.w):
                 piece = self.get_piece_at_position(x, y, grid)
                 if piece and piece.color == color and type(piece) is King:
                     return (x, y), piece
 
-        self.render()
-        messagebox.showwarning(
-            "Warning",
-            f"The {color} king was captured.\n{enemy_color(color)} won.\n\nThe game has been reset.",
-        )
-        self.reset_board()
+        if not self.draggedPiece:
+            self.render()
+            messagebox.showwarning(
+                "Warning",
+                f"The {color} king was captured.\n{enemy_color(color)} won.\n\nThe game has been reset.",
+            )
+            self.reset_board()
 
     def is_color_in_check(self, color: str, grid=None):
         """
@@ -138,7 +160,7 @@ class Board:
 
         return False
 
-    def emulate_check(self, p1, p2, player):
+    def emulate_check(self, p1: tuple[int, int], p2: tuple[int, int], player: str):
         """
         Simulate a movement, and verify if it provokes a check for the player.
         """
@@ -149,11 +171,11 @@ class Board:
         tmp[p1_y][p1_x] = None
         return self.is_color_in_check(player, tmp)
 
-    def verify_counter_check(self, color):
+    def verify_counter_check(self, color: str):
         # Test all the possible movements, to verify if the check goes away
         return any(
             not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color)
-            for (p1_x, p1_y), (p2_x, p2_y) in self.get_color_all_moves(color)
+            for (p1_x, p1_y), (p2_x, p2_y) in self.filter_illegal_moves(self.get_color_all_moves(color), color)
         )
 
     def verify_for_checkmate(self):
@@ -165,8 +187,6 @@ class Board:
                     return False
                 else:
                     return "white"
-            else:
-                return "white"
 
         # If the black player is in check, verify if the player has a way to avoid the check.
         # If it's the white player turn, the black player has lost.
@@ -176,8 +196,6 @@ class Board:
                     return False
                 else:
                     return "black"
-            else:
-                return "black"
 
         return None
 
@@ -341,44 +359,66 @@ class Board:
             destination_piece = self.get_piece_at_position(x, y)
             # Check if the released position is a valid movement.
             if (
-                (x, y) in self.draggedPiece.get_moves(self, pos_x, pos_y)
-                and not destination_piece
+                    (x, y) in self.draggedPiece.get_moves(self, pos_x, pos_y)
+                    and not destination_piece
             ) or (
-                (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
-                and destination_piece
-                and destination_piece.color != self.draggedPiece.color
+                    (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
+                    and destination_piece
+                    and destination_piece.color != self.draggedPiece.color
             ):
-                # Move the piece to the new position
-                self.grid[y][x] = self.draggedPiece
-                self.draggedPiece = None
-                self.draggedPosition = None
-                if self.player == "white":
-                    self.player = "black"
-                else:
-                    self.player = "white"
-
-                # After a movement has been made, check if any of the king are under check/checkmate
-                loser = self.verify_for_checkmate()
-
-                if self.player == "black" and self.playWithBot:
-                    start = time()
-                    ((s_x, s_y), (e_x, e_y)) = self.bot.play("black")
-                    print(f"Bot took {time() - start} seconds to play")
-
-                    self.grid[e_y][e_x] = self.grid[s_y][s_x]
-                    self.grid[s_y][s_x] = None
-                    self.player = "white"
+                if not self.emulate_check((pos_x, pos_y), (x, y), self.player):
+                    # Move the piece to the new position
+                    self.grid[y][x] = self.draggedPiece
+                    self.draggedPiece = None
+                    self.draggedPosition = None
+                    if self.player == "white":
+                        self.player = "black"
+                    else:
+                        self.player = "white"
 
                     # After a movement has been made, check if any of the king are under check/checkmate
                     loser = self.verify_for_checkmate()
 
-                if loser:
-                    messagebox.showinfo(
-                        "Game Ended",
-                        f"{enemy_color(loser)} won!\n{loser} has a checkmate!",
+                    self.render()
+                    # Update the board instantly, so it doesn't freeze while the bot might be playing.
+                    self.canvas.winfo_toplevel().update()
+
+                    if self.player == "black" and self.playWithBot:
+                        start = time()
+                        ((s_x, s_y), (e_x, e_y)) = self.bot.play("black")
+                        print(f"Bot took {time() - start} seconds to play")
+
+                        self.grid[e_y][e_x] = self.grid[s_y][s_x]
+                        self.grid[s_y][s_x] = None
+                        self.player = "white"
+
+                        # After a movement has been made, check if any of the king are under check/checkmate
+                        loser = self.verify_for_checkmate()
+
+                        if loser:
+                            self.render()
+                            # Update the board instantly, as the game ends
+                            self.canvas.winfo_toplevel().update()
+
+                    if loser:
+                        messagebox.showinfo(
+                            "Game Ended",
+                            f"{enemy_color(loser)} won!\n{loser} has a checkmate!",
+                        )
+                        self.reset_board()
+                        return
+                else:
+                    self.grid[pos_y][pos_x] = self.draggedPiece.clone()
+                    self.draggedPiece = None
+                    self.draggedPosition = None
+
+                    self.render()
+                    self.canvas.winfo_toplevel().update()
+
+                    messagebox.showerror(
+                        "Illegal Move",
+                        f"You're king is in check!",
                     )
-                    self.reset_board()
-                    return
             else:
                 # Revert the movement
                 self.grid[pos_y][pos_x] = self.draggedPiece
