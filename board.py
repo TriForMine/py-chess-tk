@@ -69,7 +69,9 @@ class Board:
                     new_grid[y][x] = grid[y][x].clone()
         return new_grid
 
-    def get_color_all_moves(self, color: str, grid=None) -> set[tuple[tuple[int, int], tuple[int, int]]]:
+    def get_color_all_moves(
+        self, color: str, grid=None
+    ) -> set[tuple[tuple[int, int], tuple[int, int]]]:
         if grid is None:
             grid = self.grid
 
@@ -92,13 +94,15 @@ class Board:
                     for pos in moves:
                         (pos_x, pos_y) = pos
                         if self.is_position_in_bound(
-                                pos_x, pos_y
+                            pos_x, pos_y
                         ) and not self.check_piece_at_position(pos_x, pos_y):
                             res.add(((x, y), pos))
 
         return res
 
-    def filter_illegal_moves(self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str):
+    def filter_illegal_moves(
+        self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str
+    ):
         """
         Remove all illegal moves from the given moves.
         """
@@ -122,7 +126,9 @@ class Board:
             grid = self.grid
 
         if type(self.draggedPiece) is King:
-            (x, y) = self.convert_world_to_local(self.hoverPosition[0], self.hoverPosition[1])
+            (x, y) = self.convert_world_to_local(
+                self.hoverPosition[0], self.hoverPosition[1]
+            )
             return (x, y), self.draggedPiece
 
         for y in range(self.h):
@@ -175,7 +181,9 @@ class Board:
         # Test all the possible movements, to verify if the check goes away
         return any(
             not self.emulate_check((p1_x, p1_y), (p2_x, p2_y), color)
-            for (p1_x, p1_y), (p2_x, p2_y) in self.filter_illegal_moves(self.get_color_all_moves(color), color)
+            for (p1_x, p1_y), (p2_x, p2_y) in self.filter_illegal_moves(
+                self.get_color_all_moves(color), color
+            )
         )
 
     def verify_for_checkmate(self):
@@ -359,12 +367,12 @@ class Board:
             destination_piece = self.get_piece_at_position(x, y)
             # Check if the released position is a valid movement.
             if (
-                    (x, y) in self.draggedPiece.get_moves(self, pos_x, pos_y)
-                    and not destination_piece
+                (x, y) in self.draggedPiece.get_moves(self, pos_x, pos_y)
+                and not destination_piece
             ) or (
-                    (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
-                    and destination_piece
-                    and destination_piece.color != self.draggedPiece.color
+                (x, y) in self.draggedPiece.get_capture_moves(self, pos_x, pos_y)
+                and destination_piece
+                and destination_piece.color != self.draggedPiece.color
             ):
                 if not self.emulate_check((pos_x, pos_y), (x, y), self.player):
                     # Move the piece to the new position
