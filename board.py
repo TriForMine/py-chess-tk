@@ -389,20 +389,25 @@ class Board:
 
                     if self.player == "black" and self.playWithBot:
                         start = time()
-                        ((s_x, s_y), (e_x, e_y)) = self.bot.play("black")
+                        bot_move = self.bot.play("black")
                         print(f"Bot took {time() - start} seconds to play")
 
-                        self.grid[e_x, e_y] = self.grid[s_x, s_y]
-                        self.grid.pop((s_x, s_y))
-                        self.player = "white"
+                        if bot_move:
+                            ((s_x, s_y), (e_x, e_y)) = bot_move
 
-                        # After a movement has been made, check if any of the king are under check/checkmate
-                        loser = self.verify_for_checkmate()
+                            self.grid[e_x, e_y] = self.grid[s_x, s_y]
+                            self.grid.pop((s_x, s_y))
+                            self.player = "white"
 
-                        if loser:
-                            self.render()
-                            # Update the board instantly, as the game ends
-                            self.canvas.winfo_toplevel().update()
+                            # After a movement has been made, check if any of the king are under check/checkmate
+                            loser = self.verify_for_checkmate()
+
+                            if loser:
+                                self.render()
+                                # Update the board instantly, as the game ends
+                                self.canvas.winfo_toplevel().update()
+                        else:
+                            loser="black"
 
                     if loser:
                         messagebox.showinfo(
