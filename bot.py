@@ -1,6 +1,5 @@
 from collections import defaultdict
 from math import inf
-from hashlib import md5
 from piece import Piece
 from utils import calculate_total_score
 
