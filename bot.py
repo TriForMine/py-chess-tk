@@ -35,8 +35,7 @@ class Bot:
 
         if last_score >= beta:
             return beta
-        if alpha < last_score:
-            alpha = last_score
+        alpha = max(alpha, last_score)
 
         new_moves = self.board.filter_illegal_moves(
             self.board.get_color_all_moves("black", grid), "black"
