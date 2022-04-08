@@ -65,7 +65,7 @@ class Bot:
         beta,
     ):
         if depth == 0:
-            return self.quiescence_search(grid, alpha, beta)
+            return -self.quiescence_search(grid, alpha, beta)
 
         # Get all the moves possible on the new grid.
         new_moves = self.board.filter_illegal_moves(
