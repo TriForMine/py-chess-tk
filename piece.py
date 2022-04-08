@@ -29,7 +29,9 @@ class Piece:
         raise Exception("Name method need to be overwritten")
 
     @staticmethod
-    def possible_moves(board, grid, x: int, y: int, capture: bool) -> list[tuple[int, int]]:
+    def possible_moves(
+        board, grid, x: int, y: int, capture: bool
+    ) -> list[tuple[int, int]]:
         raise Exception("The piece doesn't implement any movements")
 
     @staticmethod
@@ -77,7 +79,14 @@ class Piece:
         return res
 
     def vertical(
-        self, board, grid, x: int, y: int, distance: int, both_direction: bool, capture: bool
+        self,
+        board,
+        grid,
+        x: int,
+        y: int,
+        distance: int,
+        both_direction: bool,
+        capture: bool,
     ):
         """
         Check for vertical movement
@@ -111,7 +120,14 @@ class Piece:
         return res
 
     def diagonal(
-        self, board, grid, x: int, y: int, distance: int, both_direction: bool, capture: bool
+        self,
+        board,
+        grid,
+        x: int,
+        y: int,
+        distance: int,
+        both_direction: bool,
+        capture: bool,
     ):
         """
         Check for diagonal movement
