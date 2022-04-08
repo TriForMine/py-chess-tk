@@ -66,7 +66,7 @@ class Board:
         return new_grid
 
     def get_color_all_moves(
-            self, color: str, grid=None
+        self, color: str, grid=None
     ) -> set[tuple[tuple[int, int], tuple[int, int]]]:
         if grid is None:
             grid = self.grid
@@ -88,7 +88,7 @@ class Board:
                 for pos in moves:
                     (pos_x, pos_y) = pos
                     if self.is_position_in_bound(
-                            pos_x, pos_y
+                        pos_x, pos_y
                     ) and not self.check_piece_at_position(pos_x, pos_y, grid):
                         res.add(((x, y), pos))
 
@@ -102,7 +102,7 @@ class Board:
         return type(self.get_piece_at_position(e[0], e[1], grid)) is King
 
     def filter_illegal_moves(
-            self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str
+        self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str
     ):
         """
         Remove all illegal moves from the given moves.
@@ -182,9 +182,12 @@ class Board:
 
     def verify_counter_check(self, color: str):
         # Test all the possible movements, to verify if the check goes away
-        return any(not self.emulate_check(p1, p2, color) for p1, p2 in self.filter_illegal_moves(
+        return any(
+            not self.emulate_check(p1, p2, color)
+            for p1, p2 in self.filter_illegal_moves(
                 self.get_color_all_moves(color), color
-        ))
+            )
+        )
 
     def verify_for_checkmate(self):
         # If the white player is in check, verify if the player has a way to avoid the check.
@@ -222,7 +225,7 @@ class Board:
                         y * self.cellSize + self.cellSize * 0.8,
                         fill="#d4e157",
                         outline="",
-                        )
+                    )
 
             for pos in capture_movements:
                 (x, y) = pos
@@ -237,7 +240,7 @@ class Board:
                         y * self.cellSize + self.cellSize * 0.8,
                         fill="#ef5350",
                         outline="",
-                        )
+                    )
 
     def render(self):
         """
@@ -262,7 +265,7 @@ class Board:
                     y * self.cellSize + self.cellSize,
                     fill=fill,
                     outline="",
-                    )
+                )
 
         # Show possible movements if the user hover a piece
         if self.hoverPosition:
@@ -282,7 +285,7 @@ class Board:
                     x * self.cellSize + self.cellSize // 2,
                     y * self.cellSize + self.cellSize // 2,
                     image=self.grid[x, y].image(self.cellSize),
-                    )
+                )
 
         # Show the movements of the currently moved piece
         if self.draggedPiece:
@@ -364,12 +367,13 @@ class Board:
             destination_piece = self.get_piece_at_position(x, y)
             # Check if the released position is a valid movement.
             if (
-                    (x, y) in self.draggedPiece.get_moves(self, self.grid, pos_x, pos_y)
-                    and not destination_piece
+                (x, y) in self.draggedPiece.get_moves(self, self.grid, pos_x, pos_y)
+                and not destination_piece
             ) or (
-                    (x, y) in self.draggedPiece.get_capture_moves(self, self.grid, pos_x, pos_y)
-                    and destination_piece
-                    and destination_piece.color != self.draggedPiece.color
+                (x, y)
+                in self.draggedPiece.get_capture_moves(self, self.grid, pos_x, pos_y)
+                and destination_piece
+                and destination_piece.color != self.draggedPiece.color
             ):
                 if not self.emulate_check((pos_x, pos_y), (x, y), self.player):
                     # Move the piece to the new position
