@@ -65,7 +65,7 @@ class Bot:
         beta,
     ):
         if depth == 0:
-            return -self.quiescence_search(grid, alpha, beta)
+            return self.quiescence_search(grid, alpha, beta)
 
         # Get all the moves possible on the new grid.
         new_moves = self.board.filter_illegal_moves(
@@ -80,6 +80,10 @@ class Bot:
             # Move the piece from s to e
             tmp[e] = tmp[s].clone()
             tmp.pop(s)
+
+            # Ignore illegal moves
+            if self.board.is_color_in_check("black", tmp):
+                continue
 
             score = -self.negamax(depth - 1, tmp, not is_maximizing, -beta, -alpha)
 
@@ -110,6 +114,10 @@ class Bot:
             # Move the piece from s to e
             tmp[e] = tmp[s].clone()
             tmp.pop(s)
+
+            # Ignore illegal moves
+            if self.board.is_color_in_check("black", tmp):
+                continue
 
             node_minimax = self.negamax(depth - 1, tmp, color == "white", -beta, -alpha)
 
