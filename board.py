@@ -176,7 +176,6 @@ class Board:
         elif self.draggedPiece:
             tmp[p2] = self.draggedPiece.clone()
             tmp.pop(p1)
-            print('verify for check after moving', p1, p2)
             return self.is_color_in_check(player, tmp)
         else:
             return False
