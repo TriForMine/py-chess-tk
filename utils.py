@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typings import Tuple, DefaultDict, Optional
 
 from piece import Piece
 
@@ -10,7 +11,7 @@ def enemy_color(color: str):
         return "black"
 
 
-def calculate_total_score(grid: defaultdict[tuple[int, int], None | Piece]):
+def calculate_total_score(grid: DefaultDict[Tuple[int, int], Optional[Piece]]):
     total_score = 0
     for ((x, y), piece) in grid.items():
         if piece:
