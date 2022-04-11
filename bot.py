@@ -60,7 +60,7 @@ class Bot:
     def negamax(
         self,
         depth,
-        grid: DefaultDict[int, int], Optional[Piece]],
+        grid: DefaultDict[Tuple[int, int], Optional[Piece]],
         is_maximizing,
         alpha,
         beta,
