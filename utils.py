@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typings import Tuple, DefaultDict, Optional
+from typing import Tuple, DefaultDict, Optional
 
 from piece import Piece
 
