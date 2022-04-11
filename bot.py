@@ -1,4 +1,3 @@
-from collections import defaultdict
 from math import inf
 from piece import Piece
 from utils import calculate_total_score
