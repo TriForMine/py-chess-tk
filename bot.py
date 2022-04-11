@@ -2,7 +2,7 @@ from collections import defaultdict
 from math import inf
 from piece import Piece
 from utils import calculate_total_score
-from typings import Tuple, DefaultDict
+from typings import Tuple, DefaultDict, Optional
 
 
 class Bot:
@@ -60,7 +60,7 @@ class Bot:
     def negamax(
         self,
         depth,
-        grid: DefaultDict[int, int], None | Piece],
+        grid: DefaultDict[int, int], Optional[Piece]],
         is_maximizing,
         alpha,
         beta,
