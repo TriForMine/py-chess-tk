@@ -1,3 +1,4 @@
+from typing import List, Tuple
 from tkinter import PhotoImage
 
 from consts import (
@@ -31,7 +32,7 @@ class Piece:
     @staticmethod
     def possible_moves(
         board, grid, x: int, y: int, capture: bool
-    ) -> list[tuple[int, int]]:
+    ) -> List[Tuple[int, int]]:
         raise Exception("The piece doesn't implement any movements")
 
     @staticmethod
@@ -40,7 +41,7 @@ class Piece:
 
     __copy__ = clone
 
-    def get_moves(self, board, grid, x: int, y: int) -> list[tuple[int, int]]:
+    def get_moves(self, board, grid, x: int, y: int) -> List[Tuple[int, int]]:
         return self.possible_moves(board, grid, x, y, False)
 
     # That function will only be overwritten by the pawn.
