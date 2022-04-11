@@ -11,7 +11,7 @@ class Board:
     w: int
     h: int
     cellSize: int
-    grid: Defaultdict[Tuple[int, int], Optional[Piece]]
+    grid: DefaultDict[Tuple[int, int], Optional[Piece]]
     canvas: Canvas
     hoverPosition: Optional[Tuple[int, int]]
     currentMousePosition: Optional[Tuple[int, int]]
