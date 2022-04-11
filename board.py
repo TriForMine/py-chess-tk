@@ -53,7 +53,7 @@ class Board:
 
         self.reset_board()
 
-    def clone_grid(self, grid=None) -> Defaultdict[Tuple[int, int], Optional[Piece]]:
+    def clone_grid(self, grid=None) -> DefaultDict[Tuple[int, int], Optional[Piece]]:
         """
         Clone a grid into a new one
         """
