@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import Tuple, DefaultDict, Optional
 
 from piece import Piece
