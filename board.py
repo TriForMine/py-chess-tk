@@ -4,18 +4,19 @@ from collections import defaultdict
 from bot import Bot
 from piece import Pawn, Knight, Rook, Bishop, Queen, King, Piece
 from utils import enemy_color
+from typing import Tuple, DefaultDict, Optional, Set
 
 
 class Board:
     w: int
     h: int
     cellSize: int
-    grid: defaultdict[tuple[int, int], None | Piece]
+    grid: Defaultdict[Tuple[int, int], Optional[Piece]]
     canvas: Canvas
-    hoverPosition: tuple[int, int] | None
-    currentMousePosition: tuple[int, int] | None
-    draggedPiece: Piece | None
-    draggedPosition: tuple[int, int] | None
+    hoverPosition: Optional[Tuple[int, int]]
+    currentMousePosition: Optional[Tuple[int, int]]
+    draggedPiece: Optional[Piece]
+    draggedPosition: Optional[Tuple[int, int]]
     last_x: int
     last_y: int
 
@@ -52,7 +53,7 @@ class Board:
 
         self.reset_board()
 
-    def clone_grid(self, grid=None) -> defaultdict[tuple[int, int], None | Piece]:
+    def clone_grid(self, grid=None) -> Defaultdict[Tuple[int, int], Optional[Piece]]:
         """
         Clone a grid into a new one
         """
@@ -67,7 +68,7 @@ class Board:
 
     def get_color_all_moves(
         self, color: str, grid=None
-    ) -> set[tuple[tuple[int, int], tuple[int, int]]]:
+    ) -> Set[Tuple[Tuple[int, int], Tuple[int, int]]]:
         if grid is None:
             grid = self.grid
 
@@ -102,7 +103,7 @@ class Board:
         return type(self.get_piece_at_position(e[0], e[1], grid)) is King
 
     def filter_illegal_moves(
-        self, moves: set[tuple[tuple[int, int], tuple[int, int]]], color: str
+        self, moves: Set[Tuple[Tuple[int, int], Tuple[int, int]]], color: str
     ):
         """
         Remove all illegal moves from the given moves.
@@ -164,7 +165,7 @@ class Board:
 
         return False
 
-    def emulate_check(self, p1: tuple[int, int], p2: tuple[int, int], player: str):
+    def emulate_check(self, p1: Tuple[int, int], p2: Tuple[int, int], player: str):
         """
         Simulate a movement, and verify if it provokes a check for the player.
         """
@@ -300,7 +301,7 @@ class Board:
                 image=self.draggedPiece.image(self.cellSize),
             )
 
-    def convert_world_to_local(self, x: int, y: int) -> tuple[int, int]:
+    def convert_world_to_local(self, x: int, y: int) -> Tuple[int, int]:
         """
         Convert world position to local position in the grid
         """
@@ -312,7 +313,7 @@ class Board:
         """
         return self.w > x >= 0 and 0 <= y < self.h
 
-    def get_piece_at_position(self, x: int, y: int, grid=None) -> Piece | None:
+    def get_piece_at_position(self, x: int, y: int, grid=None) -> Optional[Piece]:
         """
         Return the piece at the provided position.
         """
